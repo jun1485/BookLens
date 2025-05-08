@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,8 +8,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Share,
+  BackHandler,
 } from "react-native";
-import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
+import {
+  useRoute,
+  useNavigation,
+  RouteProp,
+  useFocusEffect,
+  CommonActions,
+} from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../navigation/types";
@@ -29,14 +36,82 @@ type MovieDetailNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export const MovieDetailScreen = () => {
   const route = useRoute<MovieDetailRouteProp>();
   const navigation = useNavigation<MovieDetailNavigationProp>();
-  const { movieId, movie: initialMovie } = route.params;
+
+  const {
+    movieId: routeMovieId,
+    movie: initialMovie = null,
+    refresh = false,
+    fromScreen = undefined,
+  } = route.params || {};
+
+  // movieId가 문자열로 전달될 경우 숫자로 변환
+  const movieId =
+    typeof routeMovieId === "string"
+      ? parseInt(routeMovieId as string, 10)
+      : routeMovieId;
+
   const [showCollectionModal, setShowCollectionModal] = useState(false);
+
+  const handleGoBack = () => {
+    // 리뷰 작성 화면에서 왔다면 스택을 재구성하여 리뷰 작성 화면을 건너뜀
+    if (fromScreen === "Review") {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: "Main",
+              params: { screen: "MyReviews" },
+            },
+          ],
+        })
+      );
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  // 헤더 뒤로가기 버튼 커스터마이징
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={handleGoBack} style={{ marginLeft: 10 }}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, fromScreen]);
+
+  // 뒤로가기 버튼을 눌렀을 때 이전 화면으로 이동
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        handleGoBack();
+        return true; // 기본 뒤로가기 동작 방지
+      };
+
+      // 안드로이드 뒤로가기 버튼 이벤트 리스너 추가
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [navigation, fromScreen])
+  );
 
   // 영화 상세 정보 가져오기
   const { movie, loading, error } = useMovieDetails(movieId);
 
   // 영화 리뷰 가져오기
-  const { reviews } = useReviews(movieId, "movie");
+  const { reviews, fetchReviews } = useReviews(movieId, "movie");
+
+  // 리뷰 새로고침 플래그가 있으면 리뷰 목록 새로고침
+  useEffect(() => {
+    if (refresh) {
+      fetchReviews();
+    }
+  }, [refresh, fetchReviews]);
 
   // 컬렉션 관리
   const { collections, addItemToCollection } = useCollections();

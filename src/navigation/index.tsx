@@ -3,14 +3,18 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { LinkingOptions } from "@react-navigation/native";
 
 import { RootStackParamList, MainTabParamList } from "./types";
 
-// 스크린 임포트
 import { MoviesScreen } from "../screens/MoviesScreen";
 import { MovieDetailScreen } from "../screens/MovieDetailScreen";
 import { ReviewScreen } from "../screens/ReviewScreen";
 import { SearchScreen } from "../screens/SearchScreen";
+import { MyReviewsScreen } from "../screens/MyReviewsScreen";
+import { CollectionsScreen } from "../screens/CollectionsScreen";
+import { CollectionDetailScreen } from "../screens/CollectionDetailScreen";
+import { ProfileScreen } from "../screens/ProfileScreen";
 import { Text, View } from "react-native";
 
 // 임시 화면 컴포넌트
@@ -67,22 +71,68 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="MyReviews"
-        component={PlaceholderScreen}
+        component={MyReviewsScreen}
         options={{ title: "내 리뷰" }}
       />
       <Tab.Screen
         name="Profile"
-        component={PlaceholderScreen}
+        component={ProfileScreen}
         options={{ title: "프로필" }}
       />
     </Tab.Navigator>
   );
 };
 
+// URL 설정을 위한 linking 객체
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ["https://bookmovie-app.com", "bookmovie://"],
+  config: {
+    screens: {
+      Main: {
+        screens: {
+          Movies: "movies",
+          Books: "books",
+          Search: "search",
+          MyReviews: "my-reviews",
+          Profile: "profile",
+        },
+      },
+      MovieDetail: {
+        path: "movie/:movieId",
+        parse: {
+          movieId: (movieId: string) => Number(movieId),
+        },
+      },
+      BookDetail: {
+        path: "book/:isbn",
+        parse: {
+          isbn: (isbn: string) => String(isbn),
+        },
+      },
+      Review: {
+        path: "review/:itemType/:itemId",
+        parse: {
+          itemId: (itemId: string) =>
+            itemId.includes("-") ? itemId : Number(itemId),
+          itemType: (itemType: string) => itemType as "movie" | "book",
+        },
+      },
+      Collections: "collections",
+      CollectionDetail: {
+        path: "collection/:collectionId",
+        parse: {
+          collectionId: (collectionId: string) => String(collectionId),
+        },
+      },
+      CreateCollection: "create-collection",
+    },
+  },
+};
+
 // 앱 네비게이션 구조
 export const AppNavigation = () => {
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator>
         <Stack.Screen
           name="Main"
@@ -106,12 +156,12 @@ export const AppNavigation = () => {
         />
         <Stack.Screen
           name="Collections"
-          component={PlaceholderScreen}
+          component={CollectionsScreen}
           options={{ title: "내 컬렉션" }}
         />
         <Stack.Screen
           name="CollectionDetail"
-          component={PlaceholderScreen}
+          component={CollectionDetailScreen}
           options={({ route }) => ({ title: route.params.name })}
         />
         <Stack.Screen

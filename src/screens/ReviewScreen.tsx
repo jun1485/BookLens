@@ -16,7 +16,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { useReviews } from "../hooks/useReviews";
 import { StarRating } from "../components/StarRating";
-import { generateUUID } from "../utils/helpers";
 
 type ReviewRouteProp = RouteProp<RootStackParamList, "Review">;
 type ReviewNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -24,7 +23,21 @@ type ReviewNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export const ReviewScreen = () => {
   const route = useRoute<ReviewRouteProp>();
   const navigation = useNavigation<ReviewNavigationProp>();
-  const { itemId, itemType, reviewId, title } = route.params;
+
+  // URL에서 전달된 매개변수 처리 및 기본값 설정
+  const {
+    itemId: routeItemId,
+    itemType: routeItemType = "movie",
+    reviewId,
+    title = "작품",
+  } = route.params || {};
+
+  // itemId와 itemType을 올바르게 처리
+  const itemId = routeItemId || "";
+  const itemType =
+    routeItemType === "movie" || routeItemType === "book"
+      ? routeItemType
+      : "movie";
 
   // 유저 정보 (실제 앱에서는 인증 시스템에서 가져옴)
   const mockUserId = "user123";
@@ -70,7 +83,20 @@ export const ReviewScreen = () => {
         username: mockUsername,
       });
 
-      navigation.goBack();
+      // 리뷰 저장 후 해당 아이템의 상세 페이지로 이동
+      if (itemType === "movie") {
+        navigation.navigate("MovieDetail", {
+          movieId: Number(itemId),
+          refresh: true,
+          fromScreen: "Review",
+        });
+      } else {
+        navigation.navigate("BookDetail", {
+          isbn: String(itemId),
+          refresh: true,
+          fromScreen: "Review",
+        });
+      }
 
       // 성공 메시지 표시
       Alert.alert("완료", "리뷰가 저장되었습니다");
@@ -94,7 +120,21 @@ export const ReviewScreen = () => {
           try {
             setSubmitting(true);
             await deleteReview(reviewId);
-            navigation.goBack();
+
+            // 리뷰 삭제 후 해당 아이템의 상세 페이지로 이동
+            if (itemType === "movie") {
+              navigation.navigate("MovieDetail", {
+                movieId: Number(itemId),
+                refresh: true,
+                fromScreen: "Review",
+              });
+            } else {
+              navigation.navigate("BookDetail", {
+                isbn: String(itemId),
+                refresh: true,
+                fromScreen: "Review",
+              });
+            }
           } catch (error) {
             Alert.alert("오류", "리뷰 삭제 중 오류가 발생했습니다");
             console.error("Error deleting review:", error);
