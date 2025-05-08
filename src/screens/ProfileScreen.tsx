@@ -3,193 +3,242 @@ import {
   View,
   Text,
   StyleSheet,
+  Image,
   TouchableOpacity,
   ScrollView,
-  Image,
+  SafeAreaView,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navigation/types";
 import { Ionicons } from "@expo/vector-icons";
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+import { useNavigation } from "@react-navigation/native";
 
 export const ProfileScreen = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<any>();
 
-  // 프로필 정보 (실제 앱에서는 인증 시스템에서 가져옴)
-  const mockUser = {
-    username: "사용자",
-    email: "user123@example.com",
-    registeredDate: "2023-05-15",
-  };
-
-  // 메뉴 아이템 렌더링 함수
-  const renderMenuItem = (
-    icon: string,
-    label: string,
-    onPress: () => void,
-    rightText?: string
-  ) => {
-    return (
-      <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-        <View style={styles.menuIconContainer}>
-          <Ionicons name={icon as any} size={22} color="#2196F3" />
-        </View>
-        <Text style={styles.menuLabel}>{label}</Text>
-        <View style={styles.menuRight}>
-          {rightText && <Text style={styles.menuRightText}>{rightText}</Text>}
-          <Ionicons name="chevron-forward" size={18} color="#ccc" />
-        </View>
-      </TouchableOpacity>
-    );
+  // 설정 화면으로 이동
+  const navigateToSettings = () => {
+    navigation.navigate("Settings");
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* 프로필 헤더 */}
-      <View style={styles.profileHeader}>
-        <View style={styles.avatarContainer}>
-          <Image
-            source={{ uri: "https://via.placeholder.com/150" }}
-            style={styles.avatar}
-          />
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        {/* 프로필 헤더 */}
+        <View style={styles.header}>
+          {/* 설정 버튼 */}
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={navigateToSettings}
+          >
+            <Ionicons name="settings-outline" size={24} color="#333" />
+          </TouchableOpacity>
+
+          {/* 프로필 이미지 */}
+          <View style={styles.profileImageContainer}>
+            <Image
+              source={{ uri: "https://via.placeholder.com/150" }}
+              style={styles.profileImage}
+            />
+          </View>
+
+          {/* 사용자 정보 */}
+          <Text style={styles.username}>사용자</Text>
+          <Text style={styles.email}>user123@example.com</Text>
+
+          {/* 통계 정보 */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>15</Text>
+              <Text style={styles.statLabel}>리뷰</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>3</Text>
+              <Text style={styles.statLabel}>컬렉션</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>28</Text>
+              <Text style={styles.statLabel}>토론</Text>
+            </View>
+          </View>
         </View>
-        <View style={styles.userInfo}>
-          <Text style={styles.username}>{mockUser.username}</Text>
-          <Text style={styles.email}>{mockUser.email}</Text>
+
+        {/* 기능 버튼 */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate("MyReviews")}
+          >
+            <Ionicons name="star-outline" size={24} color="#6200EE" />
+            <Text style={styles.actionButtonText}>내 리뷰</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate("Collections")}
+          >
+            <Ionicons name="bookmarks-outline" size={24} color="#6200EE" />
+            <Text style={styles.actionButtonText}>내 컬렉션</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate("Discussions")}
+          >
+            <Ionicons name="chatbubbles-outline" size={24} color="#6200EE" />
+            <Text style={styles.actionButtonText}>토론</Text>
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* 구분선 */}
-      <View style={styles.divider} />
+        {/* 메뉴 목록 */}
+        <View style={styles.menuList}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={navigateToSettings}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="settings-outline" size={22} color="#6200EE" />
+              <Text style={styles.menuItemText}>설정</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#999" />
+          </TouchableOpacity>
 
-      {/* 내 컨텐츠 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>내 콘텐츠</Text>
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="help-circle-outline" size={22} color="#6200EE" />
+              <Text style={styles.menuItemText}>도움말</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#999" />
+          </TouchableOpacity>
 
-        {renderMenuItem("star-outline", "내 리뷰", () =>
-          navigation.navigate("Main", { screen: "MyReviews" })
-        )}
-
-        {renderMenuItem("albums-outline", "내 컬렉션", () =>
-          navigation.navigate("Collections")
-        )}
-
-        {renderMenuItem("bookmark-outline", "보고 싶어요", () => {})}
-
-        {renderMenuItem("checkmark-circle-outline", "봤어요", () => {})}
-      </View>
-
-      {/* 구분선 */}
-      <View style={styles.divider} />
-
-      {/* 설정 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>설정</Text>
-
-        {renderMenuItem("person-outline", "계정 정보", () => {})}
-
-        {renderMenuItem("notifications-outline", "알림 설정", () => {})}
-
-        {renderMenuItem("shield-outline", "개인정보 보호", () => {})}
-
-        {renderMenuItem("help-circle-outline", "도움말", () => {})}
-
-        {renderMenuItem("log-out-outline", "로그아웃", () => {})}
-      </View>
-
-      {/* 앱 정보 */}
-      <View style={styles.appInfo}>
-        <Text style={styles.appVersion}>북무비 앱 v1.0.0</Text>
-        <Text style={styles.copyright}>© 2023 북무비</Text>
-      </View>
-    </ScrollView>
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons
+                name="information-circle-outline"
+                size={22}
+                color="#6200EE"
+              />
+              <Text style={styles.menuItemText}>정보</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#999" />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f8f8f8",
+  },
+  header: {
     backgroundColor: "#fff",
-  },
-  profileHeader: {
-    flexDirection: "row",
-    alignItems: "center",
     padding: 20,
-    paddingBottom: 24,
+    alignItems: "center",
+    position: "relative",
   },
-  avatarContainer: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+  settingsButton: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    padding: 8,
+    zIndex: 10,
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  profileImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: "hidden",
+    marginVertical: 15,
+    borderWidth: 3,
+    borderColor: "#6200EE",
   },
-  userInfo: {
-    marginLeft: 16,
+  profileImage: {
+    width: "100%",
+    height: "100%",
   },
   username: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 4,
+    marginTop: 10,
   },
   email: {
+    fontSize: 16,
+    color: "#666",
+    marginTop: 5,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    marginTop: 20,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    width: "100%",
+  },
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#6200EE",
+  },
+  statLabel: {
     fontSize: 14,
     color: "#666",
+    marginTop: 5,
   },
-  divider: {
-    height: 8,
-    backgroundColor: "#f5f5f5",
+  actionButtons: {
+    flexDirection: "row",
+    marginVertical: 15,
+    paddingHorizontal: 20,
   },
-  section: {
-    paddingVertical: 12,
+  actionButton: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 15,
+    marginHorizontal: 5,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+  actionButtonText: {
+    marginTop: 8,
+    color: "#333",
+    fontSize: 14,
+  },
+  menuList: {
+    backgroundColor: "#fff",
+    marginVertical: 15,
+    borderRadius: 8,
+    marginHorizontal: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    justifyContent: "space-between",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
-  menuIconContainer: {
-    width: 32,
-    alignItems: "center",
-    marginRight: 12,
-  },
-  menuLabel: {
-    fontSize: 16,
-    flex: 1,
-  },
-  menuRight: {
+  menuItemLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
-  menuRightText: {
-    fontSize: 14,
-    color: "#999",
-    marginRight: 4,
-  },
-  appInfo: {
-    padding: 20,
-    alignItems: "center",
-  },
-  appVersion: {
-    fontSize: 14,
-    color: "#999",
-    marginBottom: 4,
-  },
-  copyright: {
-    fontSize: 12,
-    color: "#bbb",
+  menuItemText: {
+    fontSize: 16,
+    marginLeft: 15,
+    color: "#333",
   },
 });

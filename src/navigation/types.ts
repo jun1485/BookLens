@@ -27,6 +27,7 @@ export type RootStackParamList = {
   CreateCollection: undefined;
   DiscussionDetail: { discussionId: string; title: string };
   CreateDiscussion: undefined;
+  Settings: undefined;
 };
 
 // 탭 내비게이션 타입

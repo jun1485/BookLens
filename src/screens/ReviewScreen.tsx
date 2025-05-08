@@ -47,7 +47,10 @@ export const ReviewScreen = () => {
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const { reviews, saveReview, deleteReview } = useReviews(itemId, itemType);
+  const { reviews, addReview, updateReview, deleteReview } = useReviews(
+    itemType,
+    itemId
+  );
 
   // 기존 리뷰가 있는 경우 불러오기
   useEffect(() => {
@@ -74,14 +77,21 @@ export const ReviewScreen = () => {
     try {
       setSubmitting(true);
 
-      await saveReview({
-        itemId,
-        itemType,
-        rating,
-        content,
-        userId: mockUserId,
-        username: mockUsername,
-      });
+      if (reviewId) {
+        await updateReview(reviewId, {
+          rating,
+          content,
+        });
+      } else {
+        await addReview({
+          itemId,
+          itemType,
+          rating,
+          content,
+          userId: mockUserId,
+          username: mockUsername,
+        });
+      }
 
       // 리뷰 저장 후 해당 아이템의 상세 페이지로 이동
       if (itemType === "movie") {

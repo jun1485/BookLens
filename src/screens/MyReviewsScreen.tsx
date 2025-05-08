@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -16,29 +16,84 @@ import { useReviews } from "../hooks/useReviews";
 import { Ionicons } from "@expo/vector-icons";
 import { StarRating } from "../components/StarRating";
 import { formatDate } from "../utils/helpers";
+import { THEME } from "../utils/theme";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const MyReviewsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { reviews, loading, error, fetchReviews, deleteReview } = useReviews();
+
+  // 아무 값도 전달하지 않았을 때 모든 리뷰를 가져오도록 함
+  const {
+    reviews: allReviews,
+    loading,
+    error,
+    fetchReviews,
+    deleteReview,
+  } = useReviews();
+
   const [refreshing, setRefreshing] = useState(false);
 
   // 현재 로그인한 사용자 아이디 (실제 앱에서는 인증 시스템에서 가져옴)
   const mockUserId = "user123";
 
-  // 사용자의 리뷰만 필터링
-  const userReviews = reviews.filter((review) => review.userId === mockUserId);
+  // 컴포넌트 마운트 시 콘솔에 로깅
+  useEffect(() => {
+    console.log("MyReviewsScreen - 모든 리뷰:", allReviews);
+    console.log("MyReviewsScreen - 현재 사용자 ID:", mockUserId);
+  }, [allReviews]);
+
+  // 중복 없는 사용자의 리뷰 생성
+  const userReviews = useMemo(() => {
+    // userId가 mockUserId인 리뷰만 필터링
+    const filteredReviews = allReviews.filter(
+      (review) => review.userId === mockUserId
+    );
+
+    // itemType과 itemId로 그룹화하여 중복 제거
+    const uniqueReviewMap = new Map();
+
+    filteredReviews.forEach((review) => {
+      const key = `${review.itemType}_${review.itemId}`;
+
+      // Map에 없거나, 기존 리뷰보다 최신 리뷰인 경우 업데이트
+      if (
+        !uniqueReviewMap.has(key) ||
+        new Date(review.updatedAt || review.createdAt) >
+          new Date(
+            uniqueReviewMap.get(key).updatedAt ||
+              uniqueReviewMap.get(key).createdAt
+          )
+      ) {
+        uniqueReviewMap.set(key, review);
+      }
+    });
+
+    // Map의 값들을 배열로 변환하여 날짜 기준 내림차순 정렬
+    return Array.from(uniqueReviewMap.values()).sort(
+      (a, b) =>
+        new Date(b.updatedAt || b.createdAt).getTime() -
+        new Date(a.updatedAt || a.createdAt).getTime()
+    );
+  }, [allReviews, mockUserId]);
+
+  // 필터링된 사용자 리뷰 로깅
+  useEffect(() => {
+    console.log("MyReviewsScreen - 필터링된 사용자 리뷰:", userReviews);
+  }, [userReviews]);
 
   // 리뷰 목록 새로고침
   const handleRefresh = async () => {
+    console.log("MyReviewsScreen - 새로고침 시작");
     setRefreshing(true);
     await fetchReviews();
     setRefreshing(false);
+    console.log("MyReviewsScreen - 새로고침 완료");
   };
 
   // 리뷰 편집
   const handleEditReview = (review: Review) => {
+    console.log("MyReviewsScreen - 리뷰 편집:", review.id);
     navigation.navigate("Review", {
       itemId: review.itemId,
       itemType: review.itemType,
@@ -56,10 +111,13 @@ export const MyReviewsScreen = () => {
         style: "destructive",
         onPress: async () => {
           try {
+            console.log("MyReviewsScreen - 리뷰 삭제 시작:", reviewId);
             await deleteReview(reviewId);
+            console.log("MyReviewsScreen - 리뷰 삭제 성공");
             // 삭제 후 리스트 새로고침
             fetchReviews();
           } catch (err) {
+            console.error("MyReviewsScreen - 리뷰 삭제 오류:", err);
             Alert.alert("오류", "리뷰를 삭제하는 중 오류가 발생했습니다.");
           }
         },
@@ -115,7 +173,7 @@ export const MyReviewsScreen = () => {
             <Ionicons
               name={item.itemType === "movie" ? "film-outline" : "book-outline"}
               size={14}
-              color="#666"
+              color={THEME.inactive}
             />
             <Text style={styles.reviewTypeText}>
               {item.itemType === "movie" ? "영화" : "책"}
@@ -128,14 +186,14 @@ export const MyReviewsScreen = () => {
             style={styles.actionButton}
             onPress={() => handleEditReview(item)}
           >
-            <Ionicons name="create-outline" size={20} color="#2196F3" />
+            <Ionicons name="create-outline" size={20} color={THEME.info} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleDeleteReview(item.id)}
           >
-            <Ionicons name="trash-outline" size={20} color="#F44336" />
+            <Ionicons name="trash-outline" size={20} color={THEME.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -145,7 +203,7 @@ export const MyReviewsScreen = () => {
   if (loading && !userReviews.length) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={THEME.info} />
       </View>
     );
   }
@@ -179,7 +237,7 @@ export const MyReviewsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: THEME.background,
   },
   centered: {
     flex: 1,
@@ -191,7 +249,7 @@ const styles = StyleSheet.create({
   },
   reviewCard: {
     flexDirection: "row",
-    backgroundColor: "#fff",
+    backgroundColor: THEME.background,
     borderRadius: 8,
     marginBottom: 12,
     shadowColor: "#000",
@@ -200,7 +258,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     borderLeftWidth: 4,
-    borderLeftColor: "#2196F3",
+    borderLeftColor: THEME.info,
   },
   reviewContent: {
     flex: 1,
@@ -219,11 +277,11 @@ const styles = StyleSheet.create({
   },
   reviewDate: {
     fontSize: 12,
-    color: "#666",
+    color: THEME.inactive,
   },
   reviewText: {
     fontSize: 14,
-    color: "#333",
+    color: THEME.text,
     marginBottom: 8,
   },
   reviewType: {
@@ -232,7 +290,7 @@ const styles = StyleSheet.create({
   },
   reviewTypeText: {
     fontSize: 12,
-    color: "#666",
+    color: THEME.inactive,
     marginLeft: 4,
   },
   reviewActions: {
@@ -252,18 +310,18 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#999",
+    color: THEME.inactive,
     marginTop: 12,
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: "#2196F3",
+    backgroundColor: THEME.info,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   emptyButtonText: {
-    color: "#fff",
+    color: THEME.background,
     fontWeight: "500",
   },
 });

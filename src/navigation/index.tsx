@@ -1,9 +1,9 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, LinkingOptions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { LinkingOptions } from "@react-navigation/native";
+import { View, Text, StyleSheet, Platform } from "react-native";
 
 import { RootStackParamList, MainTabParamList } from "./types";
 
@@ -15,10 +15,14 @@ import { MyReviewsScreen } from "../screens/MyReviewsScreen";
 import { CollectionsScreen } from "../screens/CollectionsScreen";
 import { CollectionDetailScreen } from "../screens/CollectionDetailScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
-import { Text, View } from "react-native";
 import { DiscussionsScreen } from "../screens/DiscussionsScreen";
 import { DiscussionDetailScreen } from "../screens/DiscussionDetailScreen";
 import { CreateDiscussionScreen } from "../screens/CreateDiscussionScreen";
+import { BooksScreen } from "../screens/BooksScreen";
+import { BookDetailScreen } from "../screens/BookDetailScreen";
+import { SettingsScreen } from "../screens/SettingsScreen";
+
+import { THEME } from "../utils/theme";
 
 // 임시 화면 컴포넌트
 const PlaceholderScreen = ({ route }: any) => (
@@ -30,6 +34,23 @@ const PlaceholderScreen = ({ route }: any) => (
 // 스택 내비게이터
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+// 탭 아이콘 컴포넌트
+const TabIcon = ({
+  name,
+  focused,
+  color,
+}: {
+  name: any;
+  focused: boolean;
+  color: string;
+}) => {
+  return (
+    <View style={styles.iconContainer}>
+      <Ionicons name={name} size={focused ? 24 : 20} color={color} />
+    </View>
+  );
+};
 
 // 탭 내비게이션
 const MainTabNavigator = () => {
@@ -53,10 +74,15 @@ const MainTabNavigator = () => {
             iconName = focused ? "chatbubbles" : "chatbubbles-outline";
           }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <TabIcon name={iconName} focused={focused} color={color} />;
         },
-        tabBarActiveTintColor: "#2196F3",
-        tabBarInactiveTintColor: "gray",
+        tabBarActiveTintColor: THEME.primary,
+        tabBarInactiveTintColor: THEME.inactive,
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabBarLabel,
+        headerStyle: styles.header,
+        headerTitleStyle: styles.headerTitle,
+        headerShadowVisible: false,
       })}
     >
       <Tab.Screen
@@ -66,7 +92,7 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Books"
-        component={PlaceholderScreen}
+        component={BooksScreen}
         options={{ title: "책" }}
       />
       <Tab.Screen
@@ -151,7 +177,14 @@ const linking: LinkingOptions<RootStackParamList> = {
 export const AppNavigation = () => {
   return (
     <NavigationContainer linking={linking}>
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: THEME.background },
+        }}
+      >
         <Stack.Screen
           name="Main"
           component={MainTabNavigator}
@@ -160,44 +193,105 @@ export const AppNavigation = () => {
         <Stack.Screen
           name="MovieDetail"
           component={MovieDetailScreen}
-          options={({ route }) => ({ title: "영화 상세" })}
+          options={({ route }) => ({
+            title: "영화 상세",
+            animation: "slide_from_right",
+          })}
         />
         <Stack.Screen
           name="BookDetail"
-          component={PlaceholderScreen}
-          options={{ title: "책 상세" }}
+          component={BookDetailScreen}
+          options={{
+            title: "책 상세",
+            animation: "slide_from_right",
+          }}
         />
         <Stack.Screen
           name="Review"
           component={ReviewScreen}
-          options={{ title: "리뷰 작성" }}
+          options={{
+            title: "리뷰 작성",
+            animation: "slide_from_right",
+          }}
         />
         <Stack.Screen
           name="Collections"
           component={CollectionsScreen}
-          options={{ title: "내 컬렉션" }}
+          options={{
+            title: "내 컬렉션",
+            animation: "slide_from_right",
+          }}
         />
         <Stack.Screen
           name="CollectionDetail"
           component={CollectionDetailScreen}
-          options={({ route }) => ({ title: route.params.name })}
+          options={({ route }) => ({
+            title: route.params.name,
+            animation: "slide_from_right",
+          })}
         />
         <Stack.Screen
           name="CreateCollection"
           component={PlaceholderScreen}
-          options={{ title: "새 컬렉션" }}
+          options={{
+            title: "새 컬렉션",
+            animation: "slide_from_right",
+          }}
         />
         <Stack.Screen
           name="DiscussionDetail"
           component={DiscussionDetailScreen}
-          options={({ route }) => ({ title: route.params.title })}
+          options={({ route }) => ({
+            title: route.params.title,
+            animation: "slide_from_right",
+          })}
         />
         <Stack.Screen
           name="CreateDiscussion"
           component={CreateDiscussionScreen}
-          options={{ title: "토론방 만들기" }}
+          options={{
+            title: "새 토론",
+            animation: "slide_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{
+            title: "설정",
+            animation: "slide_from_right",
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
+
+// 스타일 정의
+const styles = StyleSheet.create({
+  header: {
+    backgroundColor: THEME.background,
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  headerTitle: {
+    color: THEME.text,
+    fontWeight: "bold",
+  },
+  tabBar: {
+    backgroundColor: THEME.card,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    height: Platform.OS === "ios" ? 85 : 60,
+    paddingBottom: Platform.OS === "ios" ? 25 : 5,
+  },
+  tabBarLabel: {
+    fontSize: 12,
+  },
+  iconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

@@ -1,111 +1,265 @@
 import { useState, useEffect, useCallback } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Review } from "../types";
-import { reviewStorage } from "../services/storage";
-import { generateUUID } from "../utils/helpers";
 
-// 리뷰 관리 커스텀 훅
+const MOCK_REVIEWS: Review[] = [
+  {
+    id: "1",
+    itemId: "9788932917245", // 책의 ISBN
+    itemType: "book",
+    rating: 4,
+    content:
+      "이 책은 정말 인상적이었습니다. 작가의 서술 방식이 독특하고 이야기 전개가 흥미롭습니다.",
+    createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
+    userId: "user123",
+    username: "독서광",
+  },
+  {
+    id: "2",
+    itemId: "9788932917245",
+    itemType: "book",
+    rating: 5,
+    content:
+      "최근에 읽은 책 중 최고였습니다. 캐릭터들의 심리 묘사가 특히 뛰어났고, 마지막 반전이 놀라웠습니다.",
+    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
+    userId: "user123",
+    username: "책벌레",
+  },
+  {
+    id: "3",
+    itemId: 505642, // 영화 ID
+    itemType: "movie",
+    rating: 3,
+    content:
+      "연출은 좋았지만, 스토리가 다소 뻔했습니다. 배우들의 연기는 훌륭했습니다.",
+    createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
+    userId: "user123",
+    username: "영화팬",
+  },
+];
+
+// AsyncStorage 키 상수
+const STORAGE_KEY = "app_reviews";
+
 export const useReviews = (
-  itemId?: string | number,
-  itemType?: "movie" | "book"
+  itemType?: "movie" | "book",
+  itemId?: string | number
 ) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 리뷰 불러오기
+  // 모든 리뷰 데이터 가져오기
+  const getAllReviews = useCallback(async (): Promise<Review[]> => {
+    const storedReviews = await AsyncStorage.getItem(STORAGE_KEY);
+    if (storedReviews) {
+      return JSON.parse(storedReviews);
+    }
+    // 초기 데이터가 없는 경우 가상 데이터 사용
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_REVIEWS));
+    return MOCK_REVIEWS;
+  }, []);
+
+  // 리뷰 가져오기
   const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
-      let fetchedReviews: Review[];
 
-      if (itemId && itemType) {
-        // 특정 아이템의 리뷰만 가져오기
-        fetchedReviews = await reviewStorage.getByItem(itemId, itemType);
-      } else {
-        // 모든 리뷰 가져오기
-        fetchedReviews = await reviewStorage.getAll();
+      // 모든 리뷰 데이터 가져오기
+      const reviewsData = await getAllReviews();
+
+      console.log("모든 리뷰 데이터:", reviewsData);
+
+      // 필터링 조건에 따라 리뷰 필터링
+      let filteredReviews = reviewsData;
+
+      // itemType이 지정된 경우 필터링
+      if (itemType) {
+        filteredReviews = filteredReviews.filter(
+          (review) => review.itemType === itemType
+        );
       }
 
-      setReviews(fetchedReviews);
+      // itemId가 지정된 경우 추가 필터링
+      if (itemId) {
+        filteredReviews = filteredReviews.filter(
+          (review) => String(review.itemId) === String(itemId)
+        );
+      }
+
+      console.log("필터링된 리뷰 데이터:", filteredReviews);
+
+      // 날짜 기준 내림차순 정렬
+      const sortedReviews = filteredReviews.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      setReviews(sortedReviews);
       setError(null);
     } catch (err) {
-      setError("리뷰를 불러오는 중 오류가 발생했습니다");
-      console.error("Error fetching reviews:", err);
+      console.error("리뷰를 가져오는 중 오류 발생:", err);
+      setError("리뷰를 불러오는 데 실패했습니다");
     } finally {
       setLoading(false);
     }
-  }, [itemId, itemType]);
+  }, [itemType, itemId, getAllReviews]);
 
-  // 리뷰 추가/수정
-  const saveReview = useCallback(
-    async (reviewData: Omit<Review, "id" | "createdAt" | "updatedAt">) => {
+  // 리뷰 수정하기
+  const updateReview = useCallback(
+    async (
+      reviewId: string,
+      updatedData: Pick<Review, "rating" | "content">
+    ) => {
       try {
-        // 기존 리뷰 찾기 (같은 사용자가 같은 아이템에 작성한 리뷰)
-        const existingReview = reviews.find(
-          (r) =>
-            r.userId === reviewData.userId &&
-            r.itemId === reviewData.itemId &&
-            r.itemType === reviewData.itemType
-        );
+        console.log("리뷰 수정 시작:", reviewId, updatedData);
 
-        const now = new Date().toISOString();
-        let newReview: Review;
+        // 모든 리뷰 데이터 가져오기
+        const reviewsData = await getAllReviews();
 
-        if (existingReview) {
-          // 기존 리뷰 업데이트
-          newReview = {
-            ...existingReview,
-            ...reviewData,
-            updatedAt: now,
-          };
-        } else {
-          // 새 리뷰 생성
-          newReview = {
-            id: generateUUID(),
-            ...reviewData,
-            createdAt: now,
-            updatedAt: now,
-          };
+        // 수정할 리뷰 찾기
+        const reviewIndex = reviewsData.findIndex((r) => r.id === reviewId);
+
+        if (reviewIndex === -1) {
+          throw new Error("리뷰를 찾을 수 없습니다");
         }
 
-        await reviewStorage.save(newReview);
+        // 리뷰 업데이트
+        const updatedReview = {
+          ...reviewsData[reviewIndex],
+          ...updatedData,
+          updatedAt: new Date().toISOString(),
+        };
 
-        // 상태 업데이트
-        setReviews((prevReviews) => {
-          if (existingReview) {
-            return prevReviews.map((r) =>
-              r.id === existingReview.id ? newReview : r
-            );
-          } else {
-            return [...prevReviews, newReview];
-          }
-        });
+        reviewsData[reviewIndex] = updatedReview;
 
-        return newReview;
+        console.log("수정된 리뷰:", updatedReview);
+
+        // 업데이트된 데이터 저장
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(reviewsData));
+        console.log("리뷰 수정 저장 완료");
+
+        // 현재 상태 업데이트
+        setReviews((prev) =>
+          prev.map((r) => (r.id === reviewId ? updatedReview : r))
+        );
+
+        return updatedReview;
       } catch (err) {
-        setError("리뷰를 저장하는 중 오류가 발생했습니다");
-        console.error("Error saving review:", err);
-        throw err;
+        console.error("리뷰 수정 중 오류 발생:", err);
+        throw new Error("리뷰를 수정할 수 없습니다");
       }
     },
-    [reviews]
+    [getAllReviews]
   );
 
-  // 리뷰 삭제
-  const deleteReview = useCallback(async (reviewId: string) => {
-    try {
-      await reviewStorage.delete(reviewId);
+  // 리뷰 추가하기
+  const addReview = useCallback(
+    async (newReview: Omit<Review, "id" | "createdAt" | "updatedAt">) => {
+      try {
+        console.log("리뷰 추가 시작:", newReview);
 
-      // 상태 업데이트
-      setReviews((prevReviews) => prevReviews.filter((r) => r.id !== reviewId));
-    } catch (err) {
-      setError("리뷰를 삭제하는 중 오류가 발생했습니다");
-      console.error("Error deleting review:", err);
-      throw err;
-    }
-  }, []);
+        // 모든 리뷰 데이터 가져오기
+        const reviewsData = await getAllReviews();
 
-  // 초기 데이터 로드
+        // 같은 사용자가 같은 아이템에 대해 이미 작성한 리뷰가 있는지 확인
+        const existingReview = reviewsData.find(
+          (review) =>
+            review.userId === newReview.userId &&
+            String(review.itemId) === String(newReview.itemId) &&
+            review.itemType === newReview.itemType
+        );
+
+        // 이미 리뷰가 있으면 업데이트
+        if (existingReview) {
+          console.log(
+            "이미 존재하는 리뷰 발견, 업데이트합니다:",
+            existingReview.id
+          );
+          return updateReview(existingReview.id, {
+            rating: newReview.rating,
+            content: newReview.content,
+          });
+        }
+
+        // 새 리뷰 ID 생성
+        const newId = `review_${Date.now()}`;
+        const now = new Date().toISOString();
+
+        const reviewToAdd: Review = {
+          ...newReview,
+          id: newId,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        console.log("추가할 리뷰:", reviewToAdd);
+
+        // 기존 데이터에 새 리뷰 추가
+        const updatedReviews = [reviewToAdd, ...reviewsData];
+
+        // 업데이트된 데이터 저장
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedReviews));
+        console.log("리뷰 저장 완료");
+
+        // 현재 보여주는 리뷰에 해당되면 상태 업데이트
+        let shouldUpdate = true;
+
+        if (itemType && reviewToAdd.itemType !== itemType) {
+          shouldUpdate = false;
+        }
+
+        if (itemId && String(reviewToAdd.itemId) !== String(itemId)) {
+          shouldUpdate = false;
+        }
+
+        if (shouldUpdate) {
+          setReviews((prev) => [reviewToAdd, ...prev]);
+        }
+
+        return reviewToAdd;
+      } catch (err) {
+        console.error("리뷰 추가 중 오류 발생:", err);
+        throw new Error("리뷰를 추가할 수 없습니다");
+      }
+    },
+    [itemType, itemId, getAllReviews, updateReview]
+  );
+
+  // 리뷰 삭제하기
+  const deleteReview = useCallback(
+    async (reviewId: string) => {
+      try {
+        console.log("리뷰 삭제 시작:", reviewId);
+
+        // 모든 리뷰 데이터 가져오기
+        const reviewsData = await getAllReviews();
+
+        // 삭제할 리뷰 필터링
+        const updatedReviews = reviewsData.filter((r) => r.id !== reviewId);
+
+        if (updatedReviews.length === reviewsData.length) {
+          throw new Error("해당 리뷰를 찾을 수 없습니다");
+        }
+
+        // 업데이트된 데이터 저장
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedReviews));
+        console.log("리뷰 삭제 완료");
+
+        // 현재 상태 업데이트
+        setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      } catch (err) {
+        console.error("리뷰 삭제 중 오류 발생:", err);
+        throw new Error("리뷰를 삭제할 수 없습니다");
+      }
+    },
+    [getAllReviews]
+  );
+
+  // 초기 리뷰 로드
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
@@ -115,7 +269,8 @@ export const useReviews = (
     loading,
     error,
     fetchReviews,
-    saveReview,
+    addReview,
+    updateReview,
     deleteReview,
   };
 };

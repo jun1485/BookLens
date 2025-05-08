@@ -29,6 +29,7 @@ import {
   formatDate,
   calculateAverageRating,
 } from "../utils/helpers";
+import { THEME } from "../utils/theme";
 
 type MovieDetailRouteProp = RouteProp<RootStackParamList, "MovieDetail">;
 type MovieDetailNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -104,7 +105,7 @@ export const MovieDetailScreen = () => {
   const { movie, loading, error } = useMovieDetails(movieId);
 
   // 영화 리뷰 가져오기
-  const { reviews, fetchReviews } = useReviews(movieId, "movie");
+  const { reviews, fetchReviews } = useReviews("movie", movieId);
 
   // 리뷰 새로고침 플래그가 있으면 리뷰 목록 새로고침
   useEffect(() => {
@@ -119,9 +120,15 @@ export const MovieDetailScreen = () => {
   // 초기 영화 데이터와 상세 정보 합치기
   const movieData = movie || initialMovie;
 
+  // 현재 로그인한 사용자 아이디 (실제 앱에서는 인증 시스템에서 가져옴)
+  const mockUserId = "user123";
+
   // 리뷰 평균 별점
   const reviewRatings = reviews.map((review) => review.rating);
   const averageRating = calculateAverageRating(reviewRatings);
+
+  // 현재 사용자의 리뷰 필터링
+  const userReview = reviews.find((review) => review.userId === mockUserId);
 
   const handleWriteReview = () => {
     if (movieData) {
@@ -152,7 +159,7 @@ export const MovieDetailScreen = () => {
   if (loading && !initialMovie) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={THEME.info} />
       </View>
     );
   }
@@ -223,7 +230,7 @@ export const MovieDetailScreen = () => {
             style={styles.actionButton}
             onPress={handleWriteReview}
           >
-            <Ionicons name="create-outline" size={20} color="#2196F3" />
+            <Ionicons name="create-outline" size={20} color={THEME.info} />
             <Text style={styles.actionText}>리뷰 작성</Text>
           </TouchableOpacity>
 
@@ -231,12 +238,12 @@ export const MovieDetailScreen = () => {
             style={styles.actionButton}
             onPress={handleAddToCollection}
           >
-            <Ionicons name="add-circle-outline" size={20} color="#2196F3" />
+            <Ionicons name="add-circle-outline" size={20} color={THEME.info} />
             <Text style={styles.actionText}>컬렉션에 추가</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-            <Ionicons name="share-outline" size={20} color="#2196F3" />
+            <Ionicons name="share-outline" size={20} color={THEME.info} />
             <Text style={styles.actionText}>공유</Text>
           </TouchableOpacity>
         </View>
@@ -253,25 +260,55 @@ export const MovieDetailScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>리뷰</Text>
 
-          {reviews.length > 0 ? (
-            reviews.map((review) => (
-              <View key={review.id} style={styles.reviewItem}>
-                <View style={styles.reviewHeader}>
-                  <Text style={styles.reviewAuthor}>{review.username}</Text>
-                  <StarRating
-                    rating={review.rating}
-                    disabled={true}
-                    size={16}
-                  />
-                </View>
-                <Text style={styles.reviewContent}>{review.content}</Text>
+          {userReview && (
+            <View style={[styles.reviewItem, styles.userReviewItem]}>
+              <View style={styles.reviewHeader}>
+                <Text style={styles.reviewAuthor}>내 리뷰</Text>
+                <StarRating
+                  rating={userReview.rating}
+                  disabled={true}
+                  size={16}
+                />
               </View>
-            ))
-          ) : (
-            <Text style={styles.emptyText}>
-              아직 리뷰가 없습니다. 첫 리뷰를 작성해보세요!
-            </Text>
+              <Text style={styles.reviewContent}>{userReview.content}</Text>
+              <TouchableOpacity
+                style={styles.editReviewButton}
+                onPress={() =>
+                  navigation.navigate("Review", {
+                    itemId: movieId,
+                    itemType: "movie",
+                    reviewId: userReview.id,
+                    title: movieData.title,
+                  })
+                }
+              >
+                <Ionicons name="create-outline" size={16} color={THEME.info} />
+                <Text style={styles.editReviewText}>수정</Text>
+              </TouchableOpacity>
+            </View>
           )}
+
+          {reviews.filter((review) => review.userId !== mockUserId).length > 0
+            ? reviews
+                .filter((review) => review.userId !== mockUserId)
+                .map((review) => (
+                  <View key={review.id} style={styles.reviewItem}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={styles.reviewAuthor}>{review.username}</Text>
+                      <StarRating
+                        rating={review.rating}
+                        disabled={true}
+                        size={16}
+                      />
+                    </View>
+                    <Text style={styles.reviewContent}>{review.content}</Text>
+                  </View>
+                ))
+            : !userReview && (
+                <Text style={styles.emptyText}>
+                  아직 리뷰가 없습니다. 첫 리뷰를 작성해보세요!
+                </Text>
+              )}
         </View>
       </View>
     </ScrollView>
@@ -281,7 +318,7 @@ export const MovieDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: THEME.background,
   },
   centered: {
     flex: 1,
@@ -291,7 +328,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: "red",
+    color: THEME.error,
     textAlign: "center",
   },
   headerContainer: {
@@ -368,7 +405,7 @@ const styles = StyleSheet.create({
   actionText: {
     marginTop: 4,
     fontSize: 12,
-    color: "#2196F3",
+    color: THEME.info,
   },
   section: {
     marginVertical: 16,
@@ -381,7 +418,7 @@ const styles = StyleSheet.create({
   overview: {
     fontSize: 16,
     lineHeight: 24,
-    color: "#333",
+    color: THEME.text,
   },
   reviewItem: {
     padding: 12,
@@ -401,11 +438,27 @@ const styles = StyleSheet.create({
   },
   reviewContent: {
     fontSize: 14,
-    color: "#333",
+    color: THEME.text,
   },
   emptyText: {
     fontSize: 14,
     color: "#666",
     fontStyle: "italic",
+  },
+  userReviewItem: {
+    borderLeftColor: THEME.success,
+    borderLeftWidth: 4,
+    marginBottom: 16,
+  },
+  editReviewButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-end",
+    marginTop: 8,
+  },
+  editReviewText: {
+    marginLeft: 4,
+    color: THEME.info,
+    fontSize: 14,
   },
 });

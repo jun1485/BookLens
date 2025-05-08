@@ -11,7 +11,7 @@ import { Movie, Book } from "../types";
 import { truncateText, getTMDBImageUrl, formatDate } from "../utils/helpers";
 
 const { width } = Dimensions.get("window");
-const cardWidth = width / 2 - 24; // 2열 그리드 형태로 배치
+const cardWidth = width / 2 - 16; // 좌우 간격 조정
 
 type ItemCardProps = {
   item: Movie | Book;
@@ -51,30 +51,32 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     <TouchableOpacity
       style={styles.container}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
       <View style={styles.card}>
-        <Image
-          source={{
-            uri:
-              imageUrl || "https://via.placeholder.com/150x225?text=No+Image",
-          }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-
-        {isMovie && rating > 0 && (
-          <View style={styles.ratingContainer}>
-            <Text style={styles.rating}>{(rating / 2).toFixed(1)}</Text>
-          </View>
-        )}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{
+              uri:
+                imageUrl || "https://via.placeholder.com/150x225?text=No+Image",
+            }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+          {isMovie && rating > 0 && (
+            <View style={styles.ratingContainer}>
+              <Text style={styles.rating}>{(rating / 2).toFixed(1)}</Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.infoContainer}>
-          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
             {title}
           </Text>
-
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
+            {subtitle}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -87,40 +89,48 @@ const styles = StyleSheet.create({
     margin: 8,
   },
   card: {
-    borderRadius: 8,
+    borderRadius: 12,
     backgroundColor: "#fff",
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  imageContainer: {
+    position: "relative",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     overflow: "hidden",
   },
   image: {
     width: "100%",
-    height: 150,
-    backgroundColor: "#f0f0f0",
+    height: 180,
+    backgroundColor: "#f5f5f5",
   },
   infoContainer: {
     padding: 12,
   },
   title: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 12,
     color: "#666",
+    fontWeight: "400",
   },
   ratingContainer: {
     position: "absolute",
-    top: 8,
+    bottom: 8,
     right: 8,
     backgroundColor: "rgba(0, 0, 0, 0.7)",
-    borderRadius: 12,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   rating: {
     color: "#FFC107",

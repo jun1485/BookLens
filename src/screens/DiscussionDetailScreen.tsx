@@ -5,14 +5,20 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { GiftedChat, Bubble, Send, IMessage } from "react-native-gifted-chat";
+import {
+  GiftedChat,
+  Bubble,
+  Send,
+  IMessage,
+  Composer,
+  InputToolbar,
+} from "react-native-gifted-chat";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import socketService from "../services/socketService";
 
@@ -63,7 +69,6 @@ const DUMMY_PARTICIPANTS = [
 
 export const DiscussionDetailScreen = () => {
   const route = useRoute<any>();
-  const navigation = useNavigation<any>();
   const { discussionId, title } = route.params;
 
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -78,17 +83,47 @@ export const DiscussionDetailScreen = () => {
   });
   const [isParticipantsVisible, setIsParticipantsVisible] = useState(false);
   const [participants, setParticipants] = useState(DUMMY_PARTICIPANTS);
+  const [inputMessage, setInputMessage] = useState("");
+
+  // 채팅 메시지를 AsyncStorage에 저장하는 함수
+  const saveMessagesToStorage = async (msgs: IMessage[]) => {
+    try {
+      // 각 토론방마다 별도의 키로 메시지를 저장
+      const storageKey = `discussion_messages_${discussionId}`;
+      await AsyncStorage.setItem(storageKey, JSON.stringify(msgs));
+    } catch (error) {
+      console.error("메시지 저장 중 오류 발생:", error);
+    }
+  };
 
   // 채팅 메시지 조회
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        // 실제로는 API 호출로 메시지 가져오기
-        // 임시 데이터 사용
-        setTimeout(() => {
-          setMessages(DUMMY_MESSAGES);
+        // AsyncStorage에서 저장된 메시지 불러오기
+        const storageKey = `discussion_messages_${discussionId}`;
+        const storedMessagesJson = await AsyncStorage.getItem(storageKey);
+
+        if (storedMessagesJson) {
+          // 저장된 메시지가 있으면 사용
+          const parsedMessages = JSON.parse(storedMessagesJson);
+          // 날짜 문자열을 Date 객체로 변환
+          const formattedMessages = parsedMessages.map((msg: any) => ({
+            ...msg,
+            createdAt: new Date(msg.createdAt),
+          }));
+          setMessages(formattedMessages);
           setLoading(false);
-        }, 1000);
+        } else {
+          // 저장된 메시지가 없으면 더미 데이터 사용
+          // 실제로는 API 호출로 메시지 가져오기
+          setTimeout(() => {
+            setMessages(DUMMY_MESSAGES);
+            // 초기 메시지도 저장
+            saveMessagesToStorage(DUMMY_MESSAGES);
+            setLoading(false);
+          }, 1000);
+        }
       } catch (error) {
         console.error("메시지를 가져오는 중 오류 발생:", error);
         setLoading(false);
@@ -131,9 +166,14 @@ export const DiscussionDetailScreen = () => {
             },
           };
 
-          setMessages((previousMessages) =>
-            GiftedChat.append(previousMessages, [formattedMessage])
-          );
+          setMessages((previousMessages) => {
+            const updatedMessages = GiftedChat.append(previousMessages, [
+              formattedMessage,
+            ]);
+            // 새 메시지를 받을 때마다 AsyncStorage에 저장
+            saveMessagesToStorage(updatedMessages);
+            return updatedMessages;
+          });
         });
 
         // 타이핑 상태 이벤트
@@ -179,19 +219,30 @@ export const DiscussionDetailScreen = () => {
     };
   }, [discussionId]);
 
-  // 메시지 전송
-  const onSend = useCallback(
+  // 메시지 전송 후 처리
+  const onMessageSend = useCallback(
     async (newMessages: IMessage[] = []) => {
       try {
         const [firstMessage] = newMessages;
+        if (!firstMessage?.text || firstMessage.text.trim().length === 0)
+          return;
 
         // 메시지 저장 및 소켓을 통해 전송
         await socketService.sendMessage(discussionId, firstMessage.text);
 
         // 로컬 상태 업데이트 (최적화된 UI 반응)
-        setMessages((previousMessages) =>
-          GiftedChat.append(previousMessages, newMessages)
-        );
+        setMessages((previousMessages) => {
+          const updatedMessages = GiftedChat.append(
+            previousMessages,
+            newMessages
+          );
+          // 메시지를 보낼 때마다 AsyncStorage에 저장
+          saveMessagesToStorage(updatedMessages);
+          return updatedMessages;
+        });
+
+        // 입력 필드 초기화
+        setInputMessage("");
       } catch (error) {
         console.error("메시지 전송 중 오류 발생:", error);
       }
@@ -310,6 +361,39 @@ export const DiscussionDetailScreen = () => {
     );
   };
 
+  // 커스텀 InputToolbar 렌더링
+  const renderInputToolbar = (props: any) => {
+    return (
+      <InputToolbar
+        {...props}
+        containerStyle={styles.inputToolbar}
+        primaryStyle={styles.inputToolbarPrimary}
+      />
+    );
+  };
+
+  // 커스텀 Composer 렌더링
+  const renderCustomComposer = (props: any) => {
+    return (
+      <Composer
+        {...props}
+        textInputProps={{
+          ...props.textInputProps,
+          onKeyPress: ({ nativeEvent }) => {
+            if (nativeEvent && nativeEvent.key === "Enter") {
+              props.onSend({ text: props.text.trim() });
+              return;
+            }
+          },
+          returnKeyType: "send",
+          multiline: Platform.OS === "ios",
+          blurOnSubmit: false,
+        }}
+        composerHeight={Platform.OS === "ios" ? 36 : 41}
+      />
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -337,12 +421,13 @@ export const DiscussionDetailScreen = () => {
 
       <KeyboardAvoidingView
         style={styles.chatContainer}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 30}
+        enabled
       >
         <GiftedChat
           messages={messages}
-          onSend={(newMessages) => onSend(newMessages)}
+          onSend={onMessageSend}
           user={{
             _id: user._id,
             name: user.name,
@@ -351,13 +436,24 @@ export const DiscussionDetailScreen = () => {
           renderBubble={renderBubble}
           renderSend={renderSend}
           renderFooter={renderFooter}
+          renderInputToolbar={renderInputToolbar}
+          renderComposer={renderCustomComposer}
           placeholder="메시지 입력..."
-          onInputTextChanged={handleInputTextChanged}
+          onInputTextChanged={(text) => {
+            handleInputTextChanged(text);
+            setInputMessage(text);
+          }}
+          text={inputMessage}
           alwaysShowSend
           renderAvatarOnTop
           showAvatarForEveryMessage={false}
           showUserAvatar
           renderUsernameOnMessage
+          isKeyboardInternallyHandled={false}
+          keyboardShouldPersistTaps="handled"
+          minInputToolbarHeight={50}
+          maxInputLength={1000}
+          bottomOffset={Platform.OS === "ios" ? 30 : 0}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -464,5 +560,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#2196F3",
     fontStyle: "italic",
+  },
+  inputToolbar: {
+    borderTopWidth: 1,
+    borderTopColor: "#E8E8E8",
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 5,
+  },
+  inputToolbarPrimary: {
+    alignItems: "center",
   },
 });

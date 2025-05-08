@@ -70,3 +70,37 @@ export const findSimilarByGenre = <
 
   return similarItems;
 };
+
+// 색상 투명도 헬퍼 함수
+export const addAlpha = (color: string, opacity: number): string => {
+  // 색상이 #RGB 또는 #RRGGBB 형식인 경우
+  if (color.startsWith("#")) {
+    let r, g, b;
+    if (color.length === 4) {
+      // #RGB 형식인 경우 #RRGGBB 형식으로 변환
+      r = parseInt(color[1] + color[1], 16);
+      g = parseInt(color[2] + color[2], 16);
+      b = parseInt(color[3] + color[3], 16);
+    } else if (color.length === 7) {
+      // #RRGGBB 형식인 경우
+      r = parseInt(color.slice(1, 3), 16);
+      g = parseInt(color.slice(3, 5), 16);
+      b = parseInt(color.slice(5, 7), 16);
+    } else {
+      // 지원하지 않는 형식
+      return color;
+    }
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  }
+  // 이미 rgba 형식인 경우 알파값만 변경
+  if (color.startsWith("rgba")) {
+    return color.replace(/rgba\((.+?),\s*[\d\.]+\)/, `rgba($1, ${opacity})`);
+  }
+  // rgb 형식인 경우 rgba로 변환
+  if (color.startsWith("rgb")) {
+    return color.replace(/rgb/, "rgba").replace(/\)/, `, ${opacity})`);
+  }
+
+  // 지원하지 않는 형식
+  return color;
+};
