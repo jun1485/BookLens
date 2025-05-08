@@ -16,6 +16,9 @@ import { CollectionsScreen } from "../screens/CollectionsScreen";
 import { CollectionDetailScreen } from "../screens/CollectionDetailScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { Text, View } from "react-native";
+import { DiscussionsScreen } from "../screens/DiscussionsScreen";
+import { DiscussionDetailScreen } from "../screens/DiscussionDetailScreen";
+import { CreateDiscussionScreen } from "../screens/CreateDiscussionScreen";
 
 // 임시 화면 컴포넌트
 const PlaceholderScreen = ({ route }: any) => (
@@ -46,6 +49,8 @@ const MainTabNavigator = () => {
             iconName = focused ? "star" : "star-outline";
           } else if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
+          } else if (route.name === "Discussions") {
+            iconName = focused ? "chatbubbles" : "chatbubbles-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -75,6 +80,11 @@ const MainTabNavigator = () => {
         options={{ title: "내 리뷰" }}
       />
       <Tab.Screen
+        name="Discussions"
+        component={DiscussionsScreen}
+        options={{ title: "토론" }}
+      />
+      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{ title: "프로필" }}
@@ -95,6 +105,7 @@ const linking: LinkingOptions<RootStackParamList> = {
           Search: "search",
           MyReviews: "my-reviews",
           Profile: "profile",
+          Discussions: "discussions",
         },
       },
       MovieDetail: {
@@ -125,6 +136,13 @@ const linking: LinkingOptions<RootStackParamList> = {
         },
       },
       CreateCollection: "create-collection",
+      DiscussionDetail: {
+        path: "discussion/:discussionId",
+        parse: {
+          discussionId: (discussionId: string) => String(discussionId),
+        },
+      },
+      CreateDiscussion: "create-discussion",
     },
   },
 };
@@ -168,6 +186,16 @@ export const AppNavigation = () => {
           name="CreateCollection"
           component={PlaceholderScreen}
           options={{ title: "새 컬렉션" }}
+        />
+        <Stack.Screen
+          name="DiscussionDetail"
+          component={DiscussionDetailScreen}
+          options={({ route }) => ({ title: route.params.title })}
+        />
+        <Stack.Screen
+          name="CreateDiscussion"
+          component={CreateDiscussionScreen}
+          options={{ title: "토론방 만들기" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

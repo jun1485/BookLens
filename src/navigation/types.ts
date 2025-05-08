@@ -25,6 +25,8 @@ export type RootStackParamList = {
   Collections: undefined;
   CollectionDetail: { collectionId: string; name: string };
   CreateCollection: undefined;
+  DiscussionDetail: { discussionId: string; title: string };
+  CreateDiscussion: undefined;
 };
 
 // 탭 내비게이션 타입
@@ -34,4 +36,5 @@ export type MainTabParamList = {
   Search: undefined;
   MyReviews: undefined;
   Profile: undefined;
+  Discussions: undefined;
 };
