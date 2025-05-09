@@ -11,6 +11,7 @@ import {
   Share,
   Alert,
   Linking,
+  FlatList,
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -207,131 +208,157 @@ export const BookDetailScreen = () => {
     ]);
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6200EE" />
-      </View>
-    );
-  }
+  const renderBookDetails = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6200EE" />
+        </View>
+      );
+    }
 
-  if (!book) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>책 정보를 찾을 수 없습니다</Text>
-      </View>
-    );
-  }
+    if (!book) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>책 정보를 찾을 수 없습니다</Text>
+        </View>
+      );
+    }
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* 책 이미지 및 기본 정보 */}
-        <View style={styles.bookHeader}>
-          <Image
-            source={{
-              uri:
-                book.cover_image ||
-                "https://via.placeholder.com/150x225?text=No+Image",
-            }}
-            style={styles.bookCover}
-            resizeMode="cover"
+    return (
+      <FlatList
+        data={reviews}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ReviewCard
+            key={item.id}
+            review={item}
+            currentUserId="user123"
+            onEdit={handleEditReview}
+            onDelete={handleDeleteReview}
           />
-
-          <View style={styles.bookInfo}>
-            <Text style={styles.title}>{book.title}</Text>
-            <Text style={styles.author}>{book.author}</Text>
-            <Text style={styles.publisher}>
-              {book.publisher} | {book.published_date}
-            </Text>
-            <View style={styles.priceContainer}>
-              <Text style={styles.price}>{book.price.toLocaleString()}원</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 액션 버튼 영역 */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleWriteReview}
-          >
-            <Ionicons name="create-outline" size={22} color="#6200EE" />
-            <Text style={styles.actionButtonText}>리뷰 작성</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleAddToCollection}
-          >
-            <Ionicons name="bookmark-outline" size={22} color="#6200EE" />
-            <Text style={styles.actionButtonText}>컬렉션에 추가</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-            <Ionicons name="share-outline" size={22} color="#6200EE" />
-            <Text style={styles.actionButtonText}>공유하기</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 상세 정보 영역 */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>책 소개</Text>
-          <Text style={styles.description}>{book.description}</Text>
-        </View>
-
-        {/* 구매 버튼 */}
-        <TouchableOpacity style={styles.buyButton} onPress={handleBuyBook}>
-          <Text style={styles.buyButtonText}>구매하기</Text>
-        </TouchableOpacity>
-
-        {/* 리뷰 섹션 */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>리뷰</Text>
-            <View style={styles.reviewHeaderActions}>
-              <TouchableOpacity
-                onPress={fetchReviews}
-                style={styles.refreshButton}
-              >
-                <Ionicons name="refresh" size={20} color="#6200EE" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleWriteReview}>
-                <Text style={styles.writeReviewText}>리뷰 작성</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {reviewsLoading ? (
-            <ActivityIndicator style={styles.loader} color="#6200EE" />
-          ) : reviews.length > 0 ? (
-            reviews.map((review) => (
-              <ReviewCard
-                key={review.id}
-                review={review}
-                currentUserId="user123"
-                onEdit={handleEditReview}
-                onDelete={handleDeleteReview}
+        )}
+        ListHeaderComponent={
+          <>
+            {/* 책 이미지 및 기본 정보 */}
+            <View style={styles.bookHeader}>
+              <Image
+                source={{
+                  uri:
+                    book.cover_image ||
+                    "https://via.placeholder.com/150x225?text=No+Image",
+                }}
+                style={styles.bookCover}
+                resizeMode="cover"
               />
-            ))
-          ) : (
+
+              <View style={styles.bookInfo}>
+                <Text style={styles.title}>{book.title}</Text>
+                <Text style={styles.author}>{book.author}</Text>
+                <Text style={styles.publisher}>
+                  {book.publisher} | {book.published_date}
+                </Text>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.price}>
+                    {book.price.toLocaleString()}원
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* 액션 버튼 영역 */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleWriteReview}
+              >
+                <Ionicons name="create-outline" size={22} color="#6200EE" />
+                <Text style={styles.actionButtonText}>리뷰 작성</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleAddToCollection}
+              >
+                <Ionicons name="bookmark-outline" size={22} color="#6200EE" />
+                <Text style={styles.actionButtonText}>컬렉션에 추가</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleShare}
+              >
+                <Ionicons name="share-outline" size={22} color="#6200EE" />
+                <Text style={styles.actionButtonText}>공유하기</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 상세 정보 영역 */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>책 소개</Text>
+              <Text style={styles.description}>{book.description}</Text>
+            </View>
+
+            {/* 구매 버튼 */}
+            <TouchableOpacity style={styles.buyButton} onPress={handleBuyBook}>
+              <Text style={styles.buyButtonText}>구매하기</Text>
+            </TouchableOpacity>
+
+            {/* 리뷰 섹션 헤더 */}
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>리뷰</Text>
+                <View style={styles.reviewHeaderActions}>
+                  <TouchableOpacity
+                    onPress={fetchReviews}
+                    style={styles.refreshButton}
+                  >
+                    <Ionicons name="refresh" size={20} color="#6200EE" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleWriteReview}>
+                    <Text style={styles.writeReviewText}>리뷰 작성</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {reviewsLoading && (
+                <ActivityIndicator style={styles.loader} color="#6200EE" />
+              )}
+
+              {!reviewsLoading && reviews.length === 0 && (
+                <View style={styles.emptyReviewsContainer}>
+                  <Text style={styles.emptyReviewsText}>
+                    아직 리뷰가 없습니다. 첫 리뷰를 작성해보세요!
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.writeFirstReviewButton}
+                    onPress={handleWriteReview}
+                  >
+                    <Text style={styles.writeFirstReviewText}>
+                      첫 리뷰 작성하기
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </>
+        }
+        ListEmptyComponent={
+          reviewsLoading ? null : (
             <View style={styles.emptyReviewsContainer}>
               <Text style={styles.emptyReviewsText}>
                 아직 리뷰가 없습니다. 첫 리뷰를 작성해보세요!
               </Text>
-              <TouchableOpacity
-                style={styles.writeFirstReviewButton}
-                onPress={handleWriteReview}
-              >
-                <Text style={styles.writeFirstReviewText}>
-                  첫 리뷰 작성하기
-                </Text>
-              </TouchableOpacity>
             </View>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          )
+        }
+        contentContainerStyle={styles.scrollContainer}
+      />
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>{renderBookDetails()}</SafeAreaView>
   );
 };
 

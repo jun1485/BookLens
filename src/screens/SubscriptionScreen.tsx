@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   Alert,
   ActivityIndicator,
   SafeAreaView,
@@ -129,122 +129,135 @@ export const SubscriptionScreen = () => {
     );
   }
 
+  // 계획 렌더링 함수
+  const renderPlan = ({ item: plan }: { item: SubscriptionPlan }) => (
+    <TouchableOpacity
+      key={plan.id}
+      style={[
+        styles.planCard,
+        selectedPlanId === plan.id && styles.selectedPlanCard,
+      ]}
+      onPress={() => handleSelectPlan(plan.id)}
+    >
+      <View style={styles.planHeader}>
+        <Text style={styles.planName}>{plan.name}</Text>
+        <View style={styles.priceContainer}>
+          <Text style={styles.planPrice}>{plan.price.toLocaleString()}원</Text>
+          {plan.id === "yearly" && (
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>16% 할인</Text>
+            </View>
+          )}
+        </View>
+      </View>
+      <Text style={styles.planDescription}>{plan.description}</Text>
+      <View style={styles.checkmarkContainer}>
+        {selectedPlanId === plan.id && (
+          <Ionicons name="checkmark-circle" size={24} color="#6200EE" />
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  // FlatList 헤더 컴포넌트
+  const ListHeaderComponent = () => (
+    <>
+      {/* 구독 상태 정보 */}
+      <View style={styles.statusCard}>
+        <Ionicons
+          name={
+            subscriptionStatus.isPremium
+              ? "checkmark-circle"
+              : "close-circle-outline"
+          }
+          size={32}
+          color={subscriptionStatus.isPremium ? "#4CAF50" : "#999"}
+        />
+        <Text style={styles.statusTitle}>
+          {subscriptionStatus.isPremium ? "프리미엄 사용자" : "일반 사용자"}
+        </Text>
+        {subscriptionStatus.isPremium && subscriptionStatus.expiryDate && (
+          <Text style={styles.statusInfo}>
+            구독 만료일: {formatDate(subscriptionStatus.expiryDate)}
+          </Text>
+        )}
+        {subscriptionStatus.isPremium && subscriptionStatus.currentPlan && (
+          <Text style={styles.statusInfo}>
+            현재 플랜: {subscriptionStatus.currentPlan.name}
+          </Text>
+        )}
+      </View>
+
+      {/* 프리미엄 혜택 */}
+      <View style={styles.benefitsCard}>
+        <Text style={styles.benefitsTitle}>프리미엄 혜택</Text>
+        <View style={styles.benefitItem}>
+          <Ionicons name="remove-circle-outline" size={24} color="#6200EE" />
+          <Text style={styles.benefitText}>모든 광고 제거</Text>
+        </View>
+        <View style={styles.benefitItem}>
+          <Ionicons name="star-outline" size={24} color="#6200EE" />
+          <Text style={styles.benefitText}>고급 리뷰 템플릿 이용</Text>
+        </View>
+        <View style={styles.benefitItem}>
+          <Ionicons name="infinite-outline" size={24} color="#6200EE" />
+          <Text style={styles.benefitText}>무제한 컬렉션 생성</Text>
+        </View>
+        <View style={styles.benefitItem}>
+          <Ionicons name="people-outline" size={24} color="#6200EE" />
+          <Text style={styles.benefitText}>프리미엄 커뮤니티 액세스</Text>
+        </View>
+      </View>
+
+      {/* 구독 플랜 선택 헤더 */}
+      {!subscriptionStatus.isPremium && (
+        <Text style={styles.sectionTitle}>구독 플랜 선택</Text>
+      )}
+    </>
+  );
+
+  // FlatList 푸터 컴포넌트
+  const ListFooterComponent = () => (
+    <>
+      {!subscriptionStatus.isPremium && (
+        <>
+          {/* 구독하기 버튼 */}
+          <TouchableOpacity
+            style={styles.subscribeButton}
+            onPress={handleSubscribe}
+          >
+            <Text style={styles.subscribeButtonText}>구독하기</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.disclaimer}>
+            * 구독은 선택한 기간 동안 자동으로 갱신됩니다. 언제든지 설정에서
+            구독을 취소할 수 있습니다.
+          </Text>
+        </>
+      )}
+
+      {/* 구독 취소 버튼 */}
+      {subscriptionStatus.isPremium && (
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={handleCancelSubscription}
+        >
+          <Text style={styles.cancelButtonText}>구독 취소</Text>
+        </TouchableOpacity>
+      )}
+    </>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* 구독 상태 정보 */}
-        <View style={styles.statusCard}>
-          <Ionicons
-            name={
-              subscriptionStatus.isPremium
-                ? "checkmark-circle"
-                : "close-circle-outline"
-            }
-            size={32}
-            color={subscriptionStatus.isPremium ? "#4CAF50" : "#999"}
-          />
-          <Text style={styles.statusTitle}>
-            {subscriptionStatus.isPremium ? "프리미엄 사용자" : "일반 사용자"}
-          </Text>
-          {subscriptionStatus.isPremium && subscriptionStatus.expiryDate && (
-            <Text style={styles.statusInfo}>
-              구독 만료일: {formatDate(subscriptionStatus.expiryDate)}
-            </Text>
-          )}
-          {subscriptionStatus.isPremium && subscriptionStatus.currentPlan && (
-            <Text style={styles.statusInfo}>
-              현재 플랜: {subscriptionStatus.currentPlan.name}
-            </Text>
-          )}
-        </View>
-
-        {/* 프리미엄 혜택 */}
-        <View style={styles.benefitsCard}>
-          <Text style={styles.benefitsTitle}>프리미엄 혜택</Text>
-          <View style={styles.benefitItem}>
-            <Ionicons name="remove-circle-outline" size={24} color="#6200EE" />
-            <Text style={styles.benefitText}>모든 광고 제거</Text>
-          </View>
-          <View style={styles.benefitItem}>
-            <Ionicons name="star-outline" size={24} color="#6200EE" />
-            <Text style={styles.benefitText}>고급 리뷰 템플릿 이용</Text>
-          </View>
-          <View style={styles.benefitItem}>
-            <Ionicons name="infinite-outline" size={24} color="#6200EE" />
-            <Text style={styles.benefitText}>무제한 컬렉션 생성</Text>
-          </View>
-          <View style={styles.benefitItem}>
-            <Ionicons name="people-outline" size={24} color="#6200EE" />
-            <Text style={styles.benefitText}>프리미엄 커뮤니티 액세스</Text>
-          </View>
-        </View>
-
-        {/* 구독 플랜 선택 */}
-        {!subscriptionStatus.isPremium && (
-          <>
-            <Text style={styles.sectionTitle}>구독 플랜 선택</Text>
-            <View style={styles.plansContainer}>
-              {plans.map((plan) => (
-                <TouchableOpacity
-                  key={plan.id}
-                  style={[
-                    styles.planCard,
-                    selectedPlanId === plan.id && styles.selectedPlanCard,
-                  ]}
-                  onPress={() => handleSelectPlan(plan.id)}
-                >
-                  <View style={styles.planHeader}>
-                    <Text style={styles.planName}>{plan.name}</Text>
-                    <View style={styles.priceContainer}>
-                      <Text style={styles.planPrice}>
-                        {plan.price.toLocaleString()}원
-                      </Text>
-                      {plan.id === "yearly" && (
-                        <View style={styles.discountBadge}>
-                          <Text style={styles.discountText}>16% 할인</Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                  <Text style={styles.planDescription}>{plan.description}</Text>
-                  <View style={styles.checkmarkContainer}>
-                    {selectedPlanId === plan.id && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={24}
-                        color="#6200EE"
-                      />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* 구독하기 버튼 */}
-            <TouchableOpacity
-              style={styles.subscribeButton}
-              onPress={handleSubscribe}
-            >
-              <Text style={styles.subscribeButtonText}>구독하기</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.disclaimer}>
-              * 구독은 선택한 기간 동안 자동으로 갱신됩니다. 언제든지 설정에서
-              구독을 취소할 수 있습니다.
-            </Text>
-          </>
-        )}
-
-        {/* 구독 취소 버튼 */}
-        {subscriptionStatus.isPremium && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={handleCancelSubscription}
-          >
-            <Text style={styles.cancelButtonText}>구독 취소</Text>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
+      <FlatList
+        data={!subscriptionStatus.isPremium ? plans : []}
+        renderItem={renderPlan}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={ListFooterComponent}
+        contentContainerStyle={styles.scrollContent}
+      />
     </SafeAreaView>
   );
 };

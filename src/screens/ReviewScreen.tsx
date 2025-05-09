@@ -177,7 +177,12 @@ export const ReviewScreen = () => {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView style={styles.container}>
+      <ScrollView
+        scrollEnabled={true}
+        nestedScrollEnabled={true}
+        removeClippedSubviews={false}
+        style={styles.container}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>

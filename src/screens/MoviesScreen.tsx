@@ -74,7 +74,30 @@ export const MoviesScreen = () => {
         <Text style={styles.headerTitle}>인기 영화</Text>
       </View>
 
-      <ScrollView
+      <FlatList
+        data={movies}
+        renderItem={renderMovieItem}
+        keyExtractor={(item) => `movie-${item.id}`}
+        numColumns={2}
+        contentContainerStyle={styles.list}
+        columnWrapperStyle={styles.columnWrapper}
+        ListFooterComponent={
+          <>
+            {renderFooter()}
+            {/* 광고 배너 삽입 */}
+            <AdBanner containerId="movies_top_banner" />
+          </>
+        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={
+          !loading ? (
+            <View style={styles.centered}>
+              <Text style={styles.emptyText}>영화가 없습니다.</Text>
+            </View>
+          ) : null
+        }
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loading && movies.length === 0}
@@ -83,30 +106,7 @@ export const MoviesScreen = () => {
             tintColor={THEME.accent}
           />
         }
-      >
-        <FlatList
-          data={movies}
-          renderItem={renderMovieItem}
-          keyExtractor={(item) => `movie-${item.id}`}
-          numColumns={2}
-          contentContainerStyle={styles.list}
-          columnWrapperStyle={styles.columnWrapper}
-          ListFooterComponent={renderFooter}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-          ListEmptyComponent={
-            !loading ? (
-              <View style={styles.centered}>
-                <Text style={styles.emptyText}>영화가 없습니다.</Text>
-              </View>
-            ) : null
-          }
-          showsVerticalScrollIndicator={false}
-        />
-
-        {/* 광고 배너 삽입 */}
-        <AdBanner containerId="movies_top_banner" />
-      </ScrollView>
+      />
     </SafeAreaView>
   );
 };

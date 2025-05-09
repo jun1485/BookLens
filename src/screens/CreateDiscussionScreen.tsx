@@ -107,7 +107,12 @@ export const CreateDiscussionScreen = () => {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        scrollEnabled={true}
+        nestedScrollEnabled={true}
+        removeClippedSubviews={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
         <View style={styles.formGroup}>
           <Text style={styles.label}>컨텐츠 유형</Text>
           <View style={styles.contentTypeContainer}>

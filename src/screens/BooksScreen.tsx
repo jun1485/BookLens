@@ -12,7 +12,6 @@ import {
   SafeAreaView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
 import { useBestSellers } from "../hooks/useBooks";
 import { bookService } from "../services/api";
 import { Book } from "../types";
@@ -69,16 +68,19 @@ const BookSection = ({
       {loading ? (
         <ActivityIndicator style={styles.loader} size="large" color="#6200EE" />
       ) : books.length > 0 ? (
-        <FlatList
-          data={books}
-          renderItem={({ item }) => (
-            <BookCard book={item} onPress={() => onBookPress(item)} />
-          )}
-          keyExtractor={(item) => `book-${item.isbn}`}
+        <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.bookList}
-        />
+        >
+          {books.map((item) => (
+            <BookCard
+              key={`book-${item.isbn}`}
+              book={item}
+              onPress={() => onBookPress(item)}
+            />
+          ))}
+        </ScrollView>
       ) : (
         <Text style={styles.emptyText}>책이 없습니다</Text>
       )}
@@ -156,61 +158,130 @@ export const BooksScreen = () => {
     });
   };
 
+  // FlatList를 위한 데이터 아이템 준비
+  const flatListItems = [
+    // 베스트셀러 헤더
+    {
+      id: "bestSellers-header",
+      type: "header",
+      title: "베스트셀러",
+      onSeeAll: () =>
+        navigation.navigate("Search", {
+          initialTab: "book",
+          initialQuery: "베스트셀러",
+        }),
+    },
+    // 베스트셀러 로딩 상태 또는 책 리스트
+    ...(bestSellersLoading
+      ? [{ id: "bestSellers-loading", type: "loading" }]
+      : bestSellers.map((book) => ({
+          ...book,
+          type: "book",
+          section: "bestSellers",
+        }))),
+
+    // 광고 배너
+    { id: "banner1", type: "banner", containerId: "books_top_banner" },
+
+    // 최신 출시 헤더
+    {
+      id: "newReleases-header",
+      type: "header",
+      title: "최신 출시",
+      onSeeAll: () =>
+        navigation.navigate("Search", {
+          initialTab: "book",
+          initialQuery: "최신출간",
+        }),
+    },
+    // 최신 출시 로딩 상태 또는 책 리스트
+    ...(newReleasesLoading
+      ? [{ id: "newReleases-loading", type: "loading" }]
+      : newReleases.map((book) => ({
+          ...book,
+          type: "book",
+          section: "newReleases",
+        }))),
+
+    // 추천 도서 헤더
+    {
+      id: "recommendations-header",
+      type: "header",
+      title: "추천 도서",
+      onSeeAll: () =>
+        navigation.navigate("Search", {
+          initialTab: "book",
+          initialQuery: "추천도서",
+        }),
+    },
+    // 추천 도서 로딩 상태 또는 책 리스트
+    ...(recommendationsLoading
+      ? [{ id: "recommendations-loading", type: "loading" }]
+      : recommendations.map((book) => ({
+          ...book,
+          type: "book",
+          section: "recommendations",
+        }))),
+
+    // 하단 광고 배너
+    { id: "banner2", type: "banner", containerId: "books_bottom_banner" },
+  ];
+
+  // 아이템 렌더링 함수
+  const renderItem = ({ item }: any) => {
+    // 헤더 렌더링
+    if (item.type === "header") {
+      return (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{item.title}</Text>
+          {item.onSeeAll && (
+            <TouchableOpacity onPress={item.onSeeAll}>
+              <Text style={styles.seeAllText}>모두 보기</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      );
+    }
+
+    // 로딩 인디케이터 렌더링
+    if (item.type === "loading") {
+      return (
+        <ActivityIndicator style={styles.loader} size="large" color="#6200EE" />
+      );
+    }
+
+    // 배너 렌더링
+    if (item.type === "banner") {
+      return <AdBanner containerId={item.containerId} />;
+    }
+
+    // 책 아이템 렌더링
+    if (item.type === "book") {
+      return <BookCard book={item} onPress={() => handleBookPress(item)} />;
+    }
+
+    return null;
+  };
+
+  // 키 익스트랙터
+  const keyExtractor = (item: any) => {
+    if (item.type === "book") {
+      return `book-${item.isbn}-${item.section}`;
+    }
+    return item.id;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
+      <FlatList
+        data={flatListItems}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-      >
-        {/* 베스트셀러 섹션 */}
-        <BookSection
-          title="베스트셀러"
-          books={bestSellers}
-          loading={bestSellersLoading}
-          onSeeAll={() =>
-            navigation.navigate("Search", {
-              initialTab: "book",
-              initialQuery: "베스트셀러",
-            })
-          }
-          onBookPress={handleBookPress}
-        />
-
-        {/* 광고 배너 삽입 */}
-        <AdBanner containerId="books_top_banner" />
-
-        {/* 최신 출시 섹션 */}
-        <BookSection
-          title="최신 출시"
-          books={newReleases}
-          loading={newReleasesLoading}
-          onSeeAll={() =>
-            navigation.navigate("Search", {
-              initialTab: "book",
-              initialQuery: "최신출간",
-            })
-          }
-          onBookPress={handleBookPress}
-        />
-
-        {/* 추천 도서 섹션 */}
-        <BookSection
-          title="추천 도서"
-          books={recommendations}
-          loading={recommendationsLoading}
-          onSeeAll={() =>
-            navigation.navigate("Search", {
-              initialTab: "book",
-              initialQuery: "추천도서",
-            })
-          }
-          onBookPress={handleBookPress}
-        />
-
-        {/* 하단 광고 배너 삽입 */}
-        <AdBanner containerId="books_bottom_banner" />
-      </ScrollView>
+        contentContainerStyle={styles.listContainer}
+      />
     </SafeAreaView>
   );
 };
@@ -270,5 +341,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#666",
     marginVertical: 15,
+  },
+  listContainer: {
+    paddingVertical: 10,
+  },
+  sectionSeparator: {
+    height: 10,
   },
 });

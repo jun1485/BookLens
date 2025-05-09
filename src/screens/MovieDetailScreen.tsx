@@ -4,7 +4,7 @@ import {
   Text,
   Image,
   StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   ActivityIndicator,
   Share,
@@ -215,184 +215,219 @@ export const MovieDetailScreen = () => {
     ]);
   };
 
-  if (loading && !initialMovie) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={THEME.info} />
-      </View>
-    );
-  }
+  // 화면에 표시할 데이터 구성
+  const renderMovieDetails = () => {
+    if (loading && !initialMovie) {
+      return (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={THEME.info} />
+        </View>
+      );
+    }
 
-  if (error || !movieData) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>
-          {error || "영화 정보를 불러올 수 없습니다."}
-        </Text>
-      </View>
-    );
-  }
+    if (error || !movieData) {
+      return (
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>
+            {error || "영화 정보를 불러올 수 없습니다."}
+          </Text>
+        </View>
+      );
+    }
 
-  return (
-    <ScrollView style={styles.container}>
-      {/* 영화 포스터 및 배경 */}
-      <View style={styles.headerContainer}>
-        <Image
-          source={{
-            uri:
-              getTMDBImageUrl(movieData.backdrop_path, "backdrop") ||
-              getTMDBImageUrl(movieData.poster_path, "poster"),
-          }}
-          style={styles.backdrop}
-          resizeMode="cover"
-        />
-        <View style={styles.posterContainer}>
-          <Image
-            source={{ uri: getTMDBImageUrl(movieData.poster_path) }}
-            style={styles.poster}
-            resizeMode="cover"
+    // 리뷰 목록 (현재 사용자의 리뷰 제외)
+    const otherReviews = reviews.filter(
+      (review) => review.userId !== mockUserId
+    );
+
+    // FlatList에 표시할 데이터 아이템 구성 (헤더 섹션 + 리뷰 목록)
+    const data = otherReviews.length > 0 ? otherReviews : [];
+
+    return (
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ReviewCard
+            review={item}
+            currentUserId={mockUserId}
+            onEdit={handleEditReview}
+            onDelete={handleDeleteReview}
           />
-        </View>
-      </View>
-
-      {/* 영화 제목 및 기본 정보 */}
-      <View style={styles.infoContainer}>
-        <Text style={styles.title}>{movieData.title}</Text>
-
-        <View style={styles.metaContainer}>
-          <Text style={styles.releaseDate}>
-            {movieData.release_date
-              ? formatDate(movieData.release_date)
-              : "출시일 정보 없음"}
-          </Text>
-
-          {movieData.genres && (
-            <Text style={styles.genres}>
-              {movieData.genres
-                .map((genre: { name: string }) => genre.name)
-                .join(", ")}
-            </Text>
-          )}
-        </View>
-
-        {/* 평점 */}
-        <View style={styles.ratingContainer}>
-          <StarRating rating={averageRating} disabled={true} size={20} />
-          <Text style={styles.ratingText}>
-            {averageRating > 0
-              ? `${averageRating.toFixed(1)} (${reviews.length}개의 리뷰)`
-              : "아직 리뷰가 없습니다"}
-          </Text>
-        </View>
-
-        {/* 액션 버튼들 */}
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleWriteReview}
-          >
-            <Ionicons name="create-outline" size={20} color={THEME.info} />
-            <Text style={styles.actionText}>리뷰 작성</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleAddToCollection}
-          >
-            <Ionicons name="add-circle-outline" size={20} color={THEME.info} />
-            <Text style={styles.actionText}>컬렉션에 추가</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-            <Ionicons name="share-outline" size={20} color={THEME.info} />
-            <Text style={styles.actionText}>공유</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 줄거리 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>줄거리</Text>
-          <Text style={styles.overview}>
-            {movieData.overview || "줄거리 정보가 없습니다."}
-          </Text>
-        </View>
-
-        {/* 리뷰 섹션 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>리뷰</Text>
-
-          {userReview && (
-            <View style={[styles.reviewItem, styles.userReviewItem]}>
-              <View style={styles.reviewHeader}>
-                <Text style={styles.reviewAuthor}>내 리뷰</Text>
-                <StarRating
-                  rating={userReview.rating}
-                  disabled={true}
-                  size={16}
+        )}
+        ListHeaderComponent={
+          <>
+            {/* 영화 포스터 및 배경 */}
+            <View style={styles.headerContainer}>
+              <Image
+                source={{
+                  uri:
+                    getTMDBImageUrl(movieData.backdrop_path, "backdrop") ||
+                    getTMDBImageUrl(movieData.poster_path, "poster"),
+                }}
+                style={styles.backdrop}
+                resizeMode="cover"
+              />
+              <View style={styles.posterContainer}>
+                <Image
+                  source={{ uri: getTMDBImageUrl(movieData.poster_path) }}
+                  style={styles.poster}
+                  resizeMode="cover"
                 />
               </View>
-              <Text style={styles.reviewContent}>{userReview.content}</Text>
-              <View style={styles.reviewActions}>
+            </View>
+
+            {/* 영화 제목 및 기본 정보 */}
+            <View style={styles.infoContainer}>
+              <Text style={styles.title}>{movieData.title}</Text>
+
+              <View style={styles.metaContainer}>
+                <Text style={styles.releaseDate}>
+                  {movieData.release_date
+                    ? formatDate(movieData.release_date)
+                    : "출시일 정보 없음"}
+                </Text>
+
+                {movieData.genres && (
+                  <Text style={styles.genres}>
+                    {movieData.genres
+                      .map((genre: { name: string }) => genre.name)
+                      .join(", ")}
+                  </Text>
+                )}
+              </View>
+
+              {/* 평점 */}
+              <View style={styles.ratingContainer}>
+                <StarRating rating={averageRating} disabled={true} size={20} />
+                <Text style={styles.ratingText}>
+                  {averageRating > 0
+                    ? `${averageRating.toFixed(1)} (${reviews.length}개의 리뷰)`
+                    : "아직 리뷰가 없습니다"}
+                </Text>
+              </View>
+
+              {/* 액션 버튼들 */}
+              <View style={styles.actionsContainer}>
                 <TouchableOpacity
-                  style={styles.reviewActionButton}
-                  onPress={() =>
-                    navigation.navigate("Review", {
-                      itemId: movieId,
-                      itemType: "movie",
-                      reviewId: userReview.id,
-                      title: movieData.title,
-                    })
-                  }
+                  style={styles.actionButton}
+                  onPress={handleWriteReview}
                 >
                   <Ionicons
                     name="create-outline"
-                    size={16}
+                    size={20}
                     color={THEME.info}
                   />
-                  <Text style={styles.editReviewText}>수정</Text>
+                  <Text style={styles.actionText}>리뷰 작성</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.reviewActionButton}
-                  onPress={() => {
-                    console.log("🔴 삭제 버튼 클릭됨:", userReview.id);
-                    handleDeleteReview(userReview.id);
-                  }}
+                  style={styles.actionButton}
+                  onPress={handleAddToCollection}
                 >
                   <Ionicons
-                    name="trash-outline"
-                    size={16}
-                    color={THEME.error}
+                    name="add-circle-outline"
+                    size={20}
+                    color={THEME.info}
                   />
-                  <Text style={[styles.editReviewText, { color: THEME.error }]}>
-                    삭제
-                  </Text>
+                  <Text style={styles.actionText}>컬렉션에 추가</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleShare}
+                >
+                  <Ionicons name="share-outline" size={20} color={THEME.info} />
+                  <Text style={styles.actionText}>공유</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          )}
 
-          {reviews.filter((review) => review.userId !== mockUserId).length > 0
-            ? reviews
-                .filter((review) => review.userId !== mockUserId)
-                .map((review) => (
-                  <ReviewCard
-                    key={review.id}
-                    review={review}
-                    currentUserId={mockUserId}
-                    onEdit={handleEditReview}
-                    onDelete={handleDeleteReview}
-                  />
-                ))
-            : !userReview && (
-                <Text style={styles.emptyText}>
-                  아직 리뷰가 없습니다. 첫 리뷰를 작성해보세요!
+              {/* 줄거리 */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>줄거리</Text>
+                <Text style={styles.overview}>
+                  {movieData.overview || "줄거리 정보가 없습니다."}
                 </Text>
-              )}
-        </View>
-      </View>
-    </ScrollView>
-  );
+              </View>
+
+              {/* 리뷰 섹션 제목 */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>리뷰</Text>
+
+                {/* 사용자 리뷰 */}
+                {userReview && (
+                  <View style={[styles.reviewItem, styles.userReviewItem]}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={styles.reviewAuthor}>내 리뷰</Text>
+                      <StarRating
+                        rating={userReview.rating}
+                        disabled={true}
+                        size={16}
+                      />
+                    </View>
+                    <Text style={styles.reviewContent}>
+                      {userReview.content}
+                    </Text>
+                    <View style={styles.reviewActions}>
+                      <TouchableOpacity
+                        style={styles.reviewActionButton}
+                        onPress={() =>
+                          navigation.navigate("Review", {
+                            itemId: movieId,
+                            itemType: "movie",
+                            reviewId: userReview.id,
+                            title: movieData.title,
+                          })
+                        }
+                      >
+                        <Ionicons
+                          name="create-outline"
+                          size={16}
+                          color={THEME.info}
+                        />
+                        <Text style={styles.editReviewText}>수정</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.reviewActionButton}
+                        onPress={() => {
+                          console.log("🔴 삭제 버튼 클릭됨:", userReview.id);
+                          handleDeleteReview(userReview.id);
+                        }}
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={16}
+                          color={THEME.error}
+                        />
+                        <Text
+                          style={[
+                            styles.editReviewText,
+                            { color: THEME.error },
+                          ]}
+                        >
+                          삭제
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {otherReviews.length === 0 && !userReview && (
+                  <Text style={styles.emptyText}>
+                    아직 리뷰가 없습니다. 첫 리뷰를 작성해보세요!
+                  </Text>
+                )}
+              </View>
+            </View>
+          </>
+        }
+        contentContainerStyle={styles.container}
+      />
+    );
+  };
+
+  return renderMovieDetails();
 };
 
 const styles = StyleSheet.create({
