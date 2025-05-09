@@ -12,11 +12,11 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "scheme": "bookmovie",
+    "scheme": "booklens",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bookmovie.app",
-      "associatedDomains": ["applinks:bookmovie-app.com"]
+      "bundleIdentifier": "com.booklens.app",
+      "associatedDomains": ["applinks:booklens-app.com"]
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.bookmovie.app",
+      "package": "com.booklens.app",
       "versionCode": 1,
       "permissions": ["com.android.vending.BILLING"],
       "intentFilters": [
@@ -34,11 +34,11 @@
           "data": [
             {
               "scheme": "https",
-              "host": "bookmovie-app.com",
+              "host": "booklens-app.com",
               "pathPrefix": "/"
             },
             {
-              "scheme": "bookmovie"
+              "scheme": "booklens"
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]

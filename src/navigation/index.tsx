@@ -122,7 +122,7 @@ const MainTabNavigator = () => {
 
 // URL 설정을 위한 linking 객체
 const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: ["https://bookmovie-app.com", "bookmovie://"],
+  prefixes: ["https://booklens-app.com", "booklens://"],
   config: {
     screens: {
       Main: {
