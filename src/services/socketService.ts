@@ -7,6 +7,10 @@ const SOCKET_URL = "http://localhost:3000";
 // 개발 모드에서 실제 서버 연결 여부 설정 (false면 가상 서비스 사용)
 const USE_REAL_SERVER = false;
 
+// 메시지 로컬 처리 활성화 여부 (false일 경우 서버 응답만 처리)
+// 이 옵션을 추가하여 메시지 중복 처리 문제 해결
+const HANDLE_MESSAGE_LOCALLY = false; // 중복 메시지 방지를 위해 비활성화
+
 // 간단한 이벤트 에미터 구현
 class SimpleEventEmitter {
   private events: Record<string, Function[]> = {};
@@ -189,6 +193,7 @@ class SocketService {
         message,
         username: this.username || "익명 사용자",
         timestamp: new Date().toISOString(),
+        id: `msg-${Date.now()}`, // 고유 ID 생성
       };
 
       this.socket.emit("sendMessage", messageData, (response: any) => {
@@ -197,19 +202,19 @@ class SocketService {
         } else {
           // 가상 서비스인 경우 모의 메시지 이벤트 발생
           if (!USE_REAL_SERVER && this.mockEmitter) {
-            setTimeout(() => {
-              const mockMessage = {
-                id: `msg-${Date.now()}`,
-                message,
-                username: this.username || "익명 사용자",
-                timestamp: new Date().toISOString(),
-                user: {
-                  id: "current_user_id",
-                  avatar: "https://via.placeholder.com/100",
-                },
-              };
-              this.mockEmitter?.emit("newMessage", mockMessage);
-            }, 500);
+            // 중복 메시지 방지: 로컬 처리 옵션이 활성화된 경우에만 이벤트 발생
+            if (!HANDLE_MESSAGE_LOCALLY) {
+              setTimeout(() => {
+                const mockMessage = {
+                  ...messageData,
+                  user: {
+                    id: "current_user_id",
+                    avatar: "https://via.placeholder.com/100",
+                  },
+                };
+                this.mockEmitter?.emit("newMessage", mockMessage);
+              }, 500);
+            }
           }
           resolve();
         }

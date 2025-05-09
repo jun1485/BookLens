@@ -14,6 +14,4 @@ React Native와 TypeScript로 개발된 영화/책 리뷰 및 추천 앱입니�
 - React Native
 - TypeScript
 - Expo
-- React Navigation
-- AsyncStorage
-- Axios
+- Supabase (실시간 데이터베이스 및 채팅 기능)

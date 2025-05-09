@@ -20,7 +20,10 @@ import {
   InputToolbar,
 } from "react-native-gifted-chat";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import socketService from "../services/socketService";
+import supabaseService, {
+  ChatMessage,
+  ChatUser,
+} from "../services/supabaseService";
 
 // 가상의 사용자 ID (실제로는 인증 시스템에서 가져와야 함)
 const CURRENT_USER_ID = "current_user_id";
@@ -82,7 +85,9 @@ export const DiscussionDetailScreen = () => {
     name: "사용자",
   });
   const [isParticipantsVisible, setIsParticipantsVisible] = useState(false);
-  const [participants, setParticipants] = useState(DUMMY_PARTICIPANTS);
+  const [participants, setParticipants] = useState<
+    (ChatUser & { isTyping: boolean })[]
+  >([]);
   const [inputMessage, setInputMessage] = useState("");
 
   // 채팅 메시지를 AsyncStorage에 저장하는 함수
@@ -98,128 +103,106 @@ export const DiscussionDetailScreen = () => {
 
   // 채팅 메시지 조회
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchData = async () => {
       try {
-        // AsyncStorage에서 저장된 메시지 불러오기
-        const storageKey = `discussion_messages_${discussionId}`;
-        const storedMessagesJson = await AsyncStorage.getItem(storageKey);
+        setLoading(true);
 
-        if (storedMessagesJson) {
-          // 저장된 메시지가 있으면 사용
-          const parsedMessages = JSON.parse(storedMessagesJson);
-          // 날짜 문자열을 Date 객체로 변환
-          const formattedMessages = parsedMessages.map((msg: any) => ({
-            ...msg,
-            createdAt: new Date(msg.createdAt),
-          }));
-          setMessages(formattedMessages);
-          setLoading(false);
-        } else {
-          // 저장된 메시지가 없으면 더미 데이터 사용
-          // 실제로는 API 호출로 메시지 가져오기
-          setTimeout(() => {
-            setMessages(DUMMY_MESSAGES);
-            // 초기 메시지도 저장
-            saveMessagesToStorage(DUMMY_MESSAGES);
-            setLoading(false);
-          }, 1000);
-        }
+        // 1. Supabase 초기화 및 사용자 정보 설정
+        const currentUser = await supabaseService.initialize();
+        setUser({
+          _id: currentUser.id,
+          name: currentUser.username,
+          avatar: currentUser.avatar_url,
+        });
+
+        // 2. 토론방 메시지 불러오기
+        const chatMessages = await supabaseService.getMessages(discussionId);
+
+        const formattedMessages: IMessage[] = chatMessages.map((msg) => ({
+          _id: msg.id,
+          text: msg.message,
+          createdAt: new Date(msg.created_at),
+          user: {
+            _id: msg.user_id,
+            name: msg.username,
+            avatar: msg.avatar_url || "https://via.placeholder.com/100",
+          },
+        }));
+
+        setMessages(formattedMessages);
+
+        // 3. 참가자 목록 불러오기
+        const chatParticipants = await supabaseService.getParticipants(
+          discussionId
+        );
+        setParticipants(
+          chatParticipants.map((participant) => ({
+            ...participant,
+            isTyping: false,
+          }))
+        );
+
+        setLoading(false);
       } catch (error) {
-        console.error("메시지를 가져오는 중 오류 발생:", error);
+        console.error("데이터 로딩 중 오류 발생:", error);
         setLoading(false);
       }
     };
 
-    // 사용자 정보 가져오기
-    const fetchUserInfo = async () => {
-      try {
-        const username = await AsyncStorage.getItem("username");
-        setUser({
-          _id: CURRENT_USER_ID,
-          name: username || "사용자",
-          avatar: "https://via.placeholder.com/100",
-        });
-      } catch (error) {
-        console.error("사용자 정보를 가져오는 중 오류 발생:", error);
-      }
-    };
+    fetchData();
 
-    fetchUserInfo();
-    fetchMessages();
+    // 4. 메시지 구독 설정
+    const unsubscribe = supabaseService.subscribeToDiscussion(
+      discussionId,
+      (newMessage: ChatMessage) => {
+        // 새 메시지 수신 시 처리
+        const formattedMessage: IMessage = {
+          _id: newMessage.id,
+          text: newMessage.message,
+          createdAt: new Date(newMessage.created_at),
+          user: {
+            _id: newMessage.user_id,
+            name: newMessage.username,
+            avatar: newMessage.avatar_url || "https://via.placeholder.com/100",
+          },
+        };
 
-    // 웹소켓 연결 및 토론방 참여
-    const setupSocketConnection = async () => {
-      try {
-        const socket = await socketService.initialize();
-        await socketService.joinDiscussion(discussionId);
-
-        // 실시간 메시지 수신 이벤트
-        socket.on("newMessage", (message: any) => {
-          const formattedMessage: IMessage = {
-            _id: message.id,
-            text: message.message,
-            createdAt: new Date(message.timestamp),
-            user: {
-              _id: message.user?.id || "unknown",
-              name: message.username,
-              avatar: message.user?.avatar || "https://via.placeholder.com/100",
-            },
-          };
-
-          setMessages((previousMessages) => {
-            const updatedMessages = GiftedChat.append(previousMessages, [
-              formattedMessage,
-            ]);
-            // 새 메시지를 받을 때마다 AsyncStorage에 저장
-            saveMessagesToStorage(updatedMessages);
-            return updatedMessages;
-          });
-        });
-
-        // 타이핑 상태 이벤트
-        socket.on(
-          "userTyping",
-          ({ userId, isTyping }: { userId: string; isTyping: boolean }) => {
-            setParticipants((prev) =>
-              prev.map((p) => (p.id === userId ? { ...p, isTyping } : p))
-            );
-          }
+        // 메시지 추가
+        setMessages((previousMessages) =>
+          GiftedChat.append(previousMessages, [formattedMessage])
         );
 
-        // 참가자 상태 변경 이벤트
-        socket.on("participantUpdate", (updatedParticipant: any) => {
-          setParticipants((prev) => {
-            const exists = prev.some((p) => p.id === updatedParticipant.id);
-            if (exists) {
-              return prev.map((p) =>
-                p.id === updatedParticipant.id
-                  ? { ...p, ...updatedParticipant }
-                  : p
-              );
-            } else {
-              return [...prev, updatedParticipant];
-            }
-          });
-        });
+        // 새 참가자 확인 및 추가
+        setParticipants((prevParticipants) => {
+          const existingParticipant = prevParticipants.find(
+            (p) => p.id === newMessage.user_id
+          );
 
-        // 참가자 퇴장 이벤트
-        socket.on("participantLeft", (userId: string) => {
-          setParticipants((prev) => prev.filter((p) => p.id !== userId));
+          if (!existingParticipant) {
+            // 새 참가자 추가
+            return [
+              ...prevParticipants,
+              {
+                id: newMessage.user_id,
+                username: newMessage.username,
+                avatar_url: newMessage.avatar_url,
+                isTyping: false,
+              },
+            ];
+          }
+
+          return prevParticipants;
         });
-      } catch (error) {
-        console.error("웹소켓 연결 중 오류 발생:", error);
       }
-    };
+    );
 
-    setupSocketConnection();
-
-    // 컴포넌트 언마운트 시 정리 작업
+    // 컴포넌트 언마운트 시 구독 해제
     return () => {
-      socketService.leaveDiscussion(discussionId);
+      unsubscribe();
     };
   }, [discussionId]);
 
-  // 메시지 전송 후 처리
+  // 메시지 전송
   const onMessageSend = useCallback(
     async (newMessages: IMessage[] = []) => {
       try {
@@ -227,19 +210,8 @@ export const DiscussionDetailScreen = () => {
         if (!firstMessage?.text || firstMessage.text.trim().length === 0)
           return;
 
-        // 메시지 저장 및 소켓을 통해 전송
-        await socketService.sendMessage(discussionId, firstMessage.text);
-
-        // 로컬 상태 업데이트 (최적화된 UI 반응)
-        setMessages((previousMessages) => {
-          const updatedMessages = GiftedChat.append(
-            previousMessages,
-            newMessages
-          );
-          // 메시지를 보낼 때마다 AsyncStorage에 저장
-          saveMessagesToStorage(updatedMessages);
-          return updatedMessages;
-        });
+        // Supabase를 통해 메시지 전송
+        await supabaseService.sendMessage(discussionId, firstMessage.text);
 
         // 입력 필드 초기화
         setInputMessage("");
@@ -255,15 +227,9 @@ export const DiscussionDetailScreen = () => {
     setIsParticipantsVisible(!isParticipantsVisible);
   };
 
-  // 타이핑 이벤트 처리
+  // 타이핑 상태는 이 데모에서는 구현하지 않음
   const handleInputTextChanged = (text: string) => {
-    if (socketService.socket) {
-      socketService.socket.emit("typing", {
-        discussionId,
-        userId: CURRENT_USER_ID,
-        isTyping: text.length > 0,
-      });
-    }
+    setInputMessage(text);
   };
 
   // 채팅 버블 커스터마이징
@@ -311,7 +277,7 @@ export const DiscussionDetailScreen = () => {
   // 타이핑 중인 사용자 표시
   const renderFooter = () => {
     const typingUsers = participants.filter(
-      (p) => p.isTyping && p.id !== CURRENT_USER_ID
+      (p) => p.isTyping && p.id !== user._id
     );
     if (typingUsers.length === 0) return null;
 
@@ -350,7 +316,7 @@ export const DiscussionDetailScreen = () => {
             </View>
             <Text style={styles.participantName}>
               {participant.username}
-              {participant.id === CURRENT_USER_ID ? " (나)" : ""}
+              {participant.id === user._id ? " (나)" : ""}
             </Text>
             {participant.isTyping && (
               <Text style={styles.typingIndicator}>입력 중...</Text>
@@ -439,10 +405,7 @@ export const DiscussionDetailScreen = () => {
           renderInputToolbar={renderInputToolbar}
           renderComposer={renderCustomComposer}
           placeholder="메시지 입력..."
-          onInputTextChanged={(text) => {
-            handleInputTextChanged(text);
-            setInputMessage(text);
-          }}
+          onInputTextChanged={handleInputTextChanged}
           text={inputMessage}
           alwaysShowSend
           renderAvatarOnTop
