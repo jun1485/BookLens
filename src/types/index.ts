@@ -1,3 +1,7 @@
+import { ItemType } from "./itemTypes";
+
+export * from "./itemTypes";
+
 // 영화 타입 정의
 export interface Movie {
   id: number;
@@ -32,7 +36,7 @@ export interface Genre {
 export interface Review {
   id: string;
   itemId: string | number; // 영화의 경우 number, 책의 경우 string(isbn)
-  itemType: "movie" | "book";
+  itemType: ItemType;
   rating: number; // 1-5 별점
   content: string;
   createdAt: string;
@@ -64,9 +68,9 @@ export interface Collection {
 // API 응답 타입 정의
 export interface ApiResponse<T> {
   results: T[];
-  total_results?: number;
-  total_pages?: number;
-  page?: number;
+  total_results: number;
+  page: number;
+  total_pages: number;
 }
 
 // 구독 플랜 타입 정의

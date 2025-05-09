@@ -1,5 +1,6 @@
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { Movie, Book } from "../types";
+import { ItemType } from "../types/itemTypes";
 
 // 메인 내비게이션 타입
 export type RootStackParamList = {
@@ -18,7 +19,7 @@ export type RootStackParamList = {
   };
   Review: {
     itemId: string | number;
-    itemType: "movie" | "book";
+    itemType: ItemType;
     reviewId?: string;
     title: string;
   };

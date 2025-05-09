@@ -6,12 +6,26 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Platform,
 } from "react-native";
 import { Movie, Book } from "../types";
 import { truncateText, getTMDBImageUrl, formatDate } from "../utils/helpers";
 
 const { width } = Dimensions.get("window");
-const cardWidth = width / 2 - 16; // 좌우 간격 조정
+const cardWidth = width / 2 - 24; // 좌우 간격 조정
+
+// 테마 색상
+const THEME = {
+  primary: "#6200EE",
+  accent: "#03DAC6",
+  background: "#FFFFFF",
+  surface: "#FFFFFF",
+  error: "#B00020",
+  text: "#000000",
+  textSecondary: "#666666",
+  border: "#E0E0E0",
+  rating: "#FFC107",
+};
 
 type ItemCardProps = {
   item: Movie | Book;
@@ -51,7 +65,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     <TouchableOpacity
       style={styles.container}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
     >
       <View style={styles.card}>
         <View style={styles.imageContainer}>
@@ -68,10 +82,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               <Text style={styles.rating}>{(rating / 2).toFixed(1)}</Text>
             </View>
           )}
+          {!isMovie && (
+            <View style={styles.bookmarkContainer}>
+              <View style={styles.bookmark} />
+            </View>
+          )}
         </View>
 
         <View style={styles.infoContainer}>
-          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
             {title}
           </Text>
           <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
@@ -87,40 +106,55 @@ const styles = StyleSheet.create({
   container: {
     width: cardWidth,
     margin: 8,
+    height: 280,
   },
   card: {
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    flex: 1,
+    borderRadius: 16,
+    backgroundColor: THEME.surface,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.05)",
   },
   imageContainer: {
     position: "relative",
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    width: "100%",
+    height: 200,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     overflow: "hidden",
   },
   image: {
     width: "100%",
-    height: 180,
-    backgroundColor: "#f5f5f5",
+    height: "100%",
+    backgroundColor: "#f0f0f0",
   },
   infoContainer: {
     padding: 12,
+    flex: 1,
+    justifyContent: "space-between",
   },
   title: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#333",
+    color: THEME.text,
     marginBottom: 4,
+    lineHeight: 18,
   },
   subtitle: {
     fontSize: 12,
-    color: "#666",
+    color: THEME.textSecondary,
     fontWeight: "400",
   },
   ratingContainer: {
@@ -133,8 +167,20 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   rating: {
-    color: "#FFC107",
+    color: THEME.rating,
     fontSize: 12,
     fontWeight: "bold",
+  },
+  bookmarkContainer: {
+    position: "absolute",
+    top: 0,
+    right: 12,
+  },
+  bookmark: {
+    width: 30,
+    height: 40,
+    backgroundColor: THEME.primary,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
   },
 });

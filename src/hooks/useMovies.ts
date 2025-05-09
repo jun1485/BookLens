@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Movie, ApiResponse } from "../types";
 import { movieService } from "../services/api";
 
@@ -10,31 +10,35 @@ export const useMovies = (initialPage = 1) => {
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
 
+  const isLoadingRef = useRef(false);
+
   // 인기 영화 가져오기
-  const fetchPopularMovies = useCallback(
-    async (pageNum = page) => {
-      try {
-        setLoading(true);
-        const response = await movieService.getPopular(pageNum);
+  const fetchPopularMovies = useCallback(async (pageNum: number) => {
+    if (isLoadingRef.current) return;
 
-        if (pageNum === 1) {
-          setMovies(response.results);
-        } else {
-          setMovies((prev) => [...prev, ...response.results]);
-        }
+    try {
+      setLoading(true);
+      isLoadingRef.current = true;
+      console.log(`실제 페이지 요청: ${pageNum}`);
+      const response = await movieService.getPopular(pageNum);
 
-        setPage(pageNum);
-        setTotalPages(response.total_pages || 0);
-        setError(null);
-      } catch (err) {
-        setError("인기 영화를 불러오는 중 오류가 발생했습니다");
-        console.error("Error fetching popular movies:", err);
-      } finally {
-        setLoading(false);
+      if (pageNum === 1) {
+        setMovies(response.results);
+      } else {
+        setMovies((prev) => [...prev, ...response.results]);
       }
-    },
-    [page]
-  );
+
+      setPage(pageNum);
+      setTotalPages(response.total_pages || 0);
+      setError(null);
+    } catch (err) {
+      setError("인기 영화를 불러오는 중 오류가 발생했습니다");
+      console.error("Error fetching popular movies:", err);
+    } finally {
+      setLoading(false);
+      isLoadingRef.current = false;
+    }
+  }, []);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -43,7 +47,16 @@ export const useMovies = (initialPage = 1) => {
 
   // 다음 페이지 로드
   const loadMore = useCallback(() => {
-    if (loading || (totalPages > 0 && page >= totalPages)) return;
+    // 로딩 중이거나 마지막 페이지에 도달한 경우 중단
+    if (
+      loading ||
+      isLoadingRef.current ||
+      (totalPages > 0 && page >= totalPages)
+    )
+      return;
+    console.log(
+      `Loading more movies... Current page: ${page}, Next page: ${page + 1}`
+    );
     fetchPopularMovies(page + 1);
   }, [fetchPopularMovies, loading, page, totalPages]);
 

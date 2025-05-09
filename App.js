@@ -10,6 +10,18 @@ export default function App() {
   useEffect(() => {
     const initializeServices = async () => {
       try {
+        // 환경 변수 로딩 확인
+        console.log(
+          "TMDB API KEY 설정 확인:",
+          process.env.TMDB_API_KEY ? "설정됨" : "미설정"
+        );
+
+        if (!process.env.TMDB_API_KEY) {
+          console.warn(
+            "TMDB API KEY가 설정되지 않았습니다. 영화 데이터를 불러올 수 없습니다."
+          );
+        }
+
         await adService.initializeAds();
 
         const userProfile = await userStorage.getProfile();

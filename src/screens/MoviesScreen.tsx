@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import { RootStackParamList } from "../navigation/types";
 import { useMovies } from "../hooks/useMovies";
 import { ItemCard } from "../components/ItemCard";
 import { Movie } from "../types";
-import { AdBanner } from "../components/AdBanner"; // 광고 배너 컴포넌트 추가
+import { AdBanner } from "../components/AdBanner";
 
 // 스타일 테마
 const THEME = {
@@ -32,6 +32,8 @@ type MoviesScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export const MoviesScreen = () => {
   const navigation = useNavigation<MoviesScreenNavigationProp>();
   const { movies, loading, error, loadMore, refresh } = useMovies();
+
+  const [lastLoadTime, setLastLoadTime] = useState(0); // 마지막 로드 시간 추적
 
   const handleMoviePress = (movie: Movie) => {
     navigation.navigate("MovieDetail", {
@@ -57,6 +59,24 @@ export const MoviesScreen = () => {
     );
   };
 
+  // 스로틀링을 통한 loadMore 함수 최적화
+  const handleLoadMore = useCallback(() => {
+    const now = Date.now();
+    // 마지막 로드 후 1초가 지나지 않았으면 무시
+    if (now - lastLoadTime < 1000) {
+      console.log("스로틀링: 너무 빠른 요청 무시");
+      return;
+    }
+
+    console.log(
+      `스크린에서 loadMore 호출, 마지막 요청 시간과의 차이: ${
+        now - lastLoadTime
+      }ms`
+    );
+    setLastLoadTime(now);
+    loadMore();
+  }, [loadMore, lastLoadTime]);
+
   if (error) {
     return (
       <SafeAreaView style={styles.centered}>
@@ -81,15 +101,14 @@ export const MoviesScreen = () => {
         numColumns={2}
         contentContainerStyle={styles.list}
         columnWrapperStyle={styles.columnWrapper}
-        ListFooterComponent={
-          <>
-            {renderFooter()}
-            {/* 광고 배너 삽입 */}
+        ListHeaderComponent={
+          <View style={styles.adContainer}>
             <AdBanner containerId="movies_top_banner" />
-          </>
+          </View>
         }
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter()}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
         ListEmptyComponent={
           !loading ? (
             <View style={styles.centered}>
@@ -159,5 +178,9 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     justifyContent: "center",
     alignItems: "center",
+  },
+  adContainer: {
+    marginBottom: 16,
+    width: "100%",
   },
 });

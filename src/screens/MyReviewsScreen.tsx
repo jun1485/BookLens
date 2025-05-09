@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,11 +19,14 @@ import { formatDate } from "../utils/helpers";
 import { THEME } from "../utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { deleteReviewDirectly } from "../utils/storageReset";
+import { ItemDetails } from "../types/itemTypes";
+import { getItemTitleFetcher } from "../hooks/useItemDetails";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const MyReviewsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { fetchItemTitle } = getItemTitleFetcher();
 
   // 아무 값도 전달하지 않았을 때 모든 리뷰를 가져오도록 함
   const {
@@ -35,11 +38,10 @@ export const MyReviewsScreen = () => {
   } = useReviews();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [itemTitles, setItemTitles] = useState<ItemDetails[]>([]);
 
-  // 현재 로그인한 사용자 아이디 (실제 앱에서는 인증 시스템에서 가져옴)
   const mockUserId = "user123";
 
-  // 컴포넌트 마운트 시 콘솔에 로깅
   useEffect(() => {
     console.log("MyReviewsScreen - 모든 리뷰:", allReviews);
     console.log("MyReviewsScreen - 현재 사용자 ID:", mockUserId);
@@ -79,17 +81,93 @@ export const MyReviewsScreen = () => {
     );
   }, [allReviews, mockUserId]);
 
-  // 필터링된 사용자 리뷰 로깅
+  const getItemTitle = useCallback(
+    (review: Review) => {
+      const titleInfo = itemTitles.find(
+        (title) => title.id === review.itemId && title.type === review.itemType
+      );
+
+      if (titleInfo) {
+        if (titleInfo.loading) {
+          return review.itemType === "movie"
+            ? `영화 (로딩 중...)`
+            : `책 (로딩 중...)`;
+        }
+        return titleInfo.title;
+      }
+
+      return review.itemType === "movie"
+        ? `영화 (ID: ${review.itemId})`
+        : `책 (ISBN: ${review.itemId})`;
+    },
+    [itemTitles]
+  );
+
+  useEffect(() => {
+    const fetchItemTitles = async () => {
+      const uniqueItems = userReviews.map((review) => ({
+        id: review.itemId,
+        type: review.itemType,
+      }));
+
+      const itemsToFetch = uniqueItems.filter(
+        (item) =>
+          !itemTitles.some(
+            (titleItem) =>
+              titleItem.id === item.id && titleItem.type === item.type
+          )
+      );
+
+      if (itemsToFetch.length === 0) return;
+
+      const initialTitles = itemsToFetch.map((item) => ({
+        id: item.id,
+        type: item.type,
+        title:
+          item.type === "movie"
+            ? `영화 (ID: ${item.id})`
+            : `책 (ISBN: ${item.id})`,
+        loading: true,
+        error: false,
+      }));
+
+      setItemTitles((prev) => [...prev, ...initialTitles]);
+
+      for (const item of itemsToFetch) {
+        try {
+          const title = await fetchItemTitle(item.type, item.id);
+
+          setItemTitles((prev) =>
+            prev.map((titleItem) =>
+              titleItem.id === item.id && titleItem.type === item.type
+                ? { ...titleItem, title, loading: false }
+                : titleItem
+            )
+          );
+        } catch (err) {
+          console.error(`제목 가져오기 오류 (${item.type} ${item.id}):`, err);
+          setItemTitles((prev) =>
+            prev.map((titleItem) =>
+              titleItem.id === item.id && titleItem.type === item.type
+                ? { ...titleItem, loading: false, error: true }
+                : titleItem
+            )
+          );
+        }
+      }
+    };
+
+    fetchItemTitles();
+  }, [userReviews, fetchItemTitle]);
+
   useEffect(() => {
     console.log("MyReviewsScreen - 필터링된 사용자 리뷰:", userReviews);
   }, [userReviews]);
 
-  // 리뷰 목록 새로고침
   const handleRefresh = async () => {
     console.log("MyReviewsScreen - 새로고침 시작");
     setRefreshing(true);
 
-    // 먼저 AsyncStorage에서 직접 데이터를 확인해 봅니다
     try {
       const storedData = await AsyncStorage.getItem("app_reviews");
       console.log(
@@ -101,14 +179,14 @@ export const MyReviewsScreen = () => {
       console.error("MyReviewsScreen - AsyncStorage 확인 중 오류:", err);
     }
 
-    // 리뷰 데이터 새로고침
     await fetchReviews();
+
+    setItemTitles([]);
 
     setRefreshing(false);
     console.log("MyReviewsScreen - 새로고침 완료");
   };
 
-  // 리뷰 편집
   const handleEditReview = (review: Review) => {
     console.log("MyReviewsScreen - 리뷰 편집:", review.id);
     navigation.navigate("Review", {
@@ -119,7 +197,6 @@ export const MyReviewsScreen = () => {
     });
   };
 
-  // 리뷰 삭제
   const handleDeleteReview = (reviewId: string) => {
     console.log(
       "MyReviewsScreen - handleDeleteReview 호출됨. reviewId:",
@@ -142,11 +219,9 @@ export const MyReviewsScreen = () => {
               reviewId
             );
 
-            // 직접 삭제 방식 사용
             const directResult = await deleteReviewDirectly(reviewId);
             console.log("MyReviewsScreen - 직접 삭제 결과:", directResult);
 
-            // 삭제 시도를 위한 기존 방식도 병행 (백업)
             try {
               await deleteReview(reviewId);
               console.log("MyReviewsScreen - 훅 삭제 완료");
@@ -154,16 +229,13 @@ export const MyReviewsScreen = () => {
               console.error("MyReviewsScreen - 훅 삭제 실패:", err);
             }
 
-            // 삭제 후 리스트 새로고침
             await fetchReviews();
             console.log("MyReviewsScreen - 리뷰 목록 새로고침 완료");
 
-            // 사용자에게 완료 알림
             Alert.alert("완료", "리뷰가 삭제되었습니다.", [
               {
                 text: "확인",
                 onPress: () => {
-                  // 앱 UI 강제 새로고침
                   setRefreshing(true);
                   setTimeout(() => {
                     fetchReviews().then(() => {
@@ -197,14 +269,6 @@ export const MyReviewsScreen = () => {
     }
   };
 
-  // 아이템 제목 (데이터가 없는 경우를 위한 임시 처리)
-  const getItemTitle = (review: Review) => {
-    return review.itemType === "movie"
-      ? `영화 (ID: ${review.itemId})`
-      : `책 (ISBN: ${review.itemId})`;
-  };
-
-  // 리뷰 아이템 렌더링
   const renderReviewItem = ({ item }: { item: Review }) => {
     return (
       <View style={styles.reviewCard}>

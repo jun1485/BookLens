@@ -16,6 +16,8 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { useReviews } from "../hooks/useReviews";
 import { StarRating } from "../components/StarRating";
+import { useItemDetails } from "../hooks/useItemDetails";
+import { ItemType } from "../types/itemTypes";
 
 type ReviewRouteProp = RouteProp<RootStackParamList, "Review">;
 type ReviewNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -36,8 +38,12 @@ export const ReviewScreen = () => {
   const itemId = routeItemId || "";
   const itemType =
     routeItemType === "movie" || routeItemType === "book"
-      ? routeItemType
+      ? (routeItemType as ItemType)
       : "movie";
+
+  const itemDetails = useItemDetails(itemType, itemId);
+
+  const displayTitle = title !== "작품" ? title : itemDetails.title;
 
   // 유저 정보 (실제 앱에서는 인증 시스템에서 가져옴)
   const mockUserId = "user123";
@@ -184,7 +190,9 @@ export const ReviewScreen = () => {
         style={styles.container}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title}>
+            {itemDetails.loading ? "로딩 중..." : displayTitle}
+          </Text>
           <Text style={styles.subtitle}>
             {itemType === "movie" ? "영화" : "책"} 리뷰 작성
           </Text>
