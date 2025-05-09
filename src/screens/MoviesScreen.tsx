@@ -8,6 +8,7 @@ import {
   RefreshControl,
   StatusBar,
   SafeAreaView,
+  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -15,6 +16,7 @@ import { RootStackParamList } from "../navigation/types";
 import { useMovies } from "../hooks/useMovies";
 import { ItemCard } from "../components/ItemCard";
 import { Movie } from "../types";
+import { AdBanner } from "../components/AdBanner"; // 광고 배너 컴포넌트 추가
 
 // 스타일 테마
 const THEME = {
@@ -72,15 +74,7 @@ export const MoviesScreen = () => {
         <Text style={styles.headerTitle}>인기 영화</Text>
       </View>
 
-      <FlatList
-        data={movies}
-        renderItem={renderMovieItem}
-        keyExtractor={(item) => `movie-${item.id}`}
-        numColumns={2}
-        contentContainerStyle={styles.list}
-        ListFooterComponent={renderFooter}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
+      <ScrollView
         refreshControl={
           <RefreshControl
             refreshing={loading && movies.length === 0}
@@ -89,15 +83,30 @@ export const MoviesScreen = () => {
             tintColor={THEME.accent}
           />
         }
-        ListEmptyComponent={
-          !loading ? (
-            <View style={styles.centered}>
-              <Text style={styles.emptyText}>영화가 없습니다.</Text>
-            </View>
-          ) : null
-        }
-        showsVerticalScrollIndicator={false}
-      />
+      >
+        <FlatList
+          data={movies}
+          renderItem={renderMovieItem}
+          keyExtractor={(item) => `movie-${item.id}`}
+          numColumns={2}
+          contentContainerStyle={styles.list}
+          columnWrapperStyle={styles.columnWrapper}
+          ListFooterComponent={renderFooter}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.centered}>
+                <Text style={styles.emptyText}>영화가 없습니다.</Text>
+              </View>
+            ) : null
+          }
+          showsVerticalScrollIndicator={false}
+        />
+
+        {/* 광고 배너 삽입 */}
+        <AdBanner containerId="movies_top_banner" />
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -118,8 +127,14 @@ const styles = StyleSheet.create({
     color: THEME.text,
   },
   list: {
-    padding: 8,
+    padding: 16,
     paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
+  columnWrapper: {
+    justifyContent: "center",
+    paddingHorizontal: 4,
+    gap: 8,
   },
   centered: {
     flex: 1,

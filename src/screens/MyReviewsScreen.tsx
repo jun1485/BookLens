@@ -17,6 +17,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { StarRating } from "../components/StarRating";
 import { formatDate } from "../utils/helpers";
 import { THEME } from "../utils/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { deleteReviewDirectly } from "../utils/storageReset";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -86,7 +88,22 @@ export const MyReviewsScreen = () => {
   const handleRefresh = async () => {
     console.log("MyReviewsScreen - 새로고침 시작");
     setRefreshing(true);
+
+    // 먼저 AsyncStorage에서 직접 데이터를 확인해 봅니다
+    try {
+      const storedData = await AsyncStorage.getItem("app_reviews");
+      console.log(
+        "MyReviewsScreen - AsyncStorage 데이터:",
+        storedData ? JSON.parse(storedData).length : 0,
+        "개 리뷰"
+      );
+    } catch (err) {
+      console.error("MyReviewsScreen - AsyncStorage 확인 중 오류:", err);
+    }
+
+    // 리뷰 데이터 새로고침
     await fetchReviews();
+
     setRefreshing(false);
     console.log("MyReviewsScreen - 새로고침 완료");
   };
@@ -104,6 +121,15 @@ export const MyReviewsScreen = () => {
 
   // 리뷰 삭제
   const handleDeleteReview = (reviewId: string) => {
+    console.log(
+      "MyReviewsScreen - handleDeleteReview 호출됨. reviewId:",
+      reviewId
+    );
+    if (!reviewId) {
+      console.error("MyReviewsScreen - 삭제할 리뷰 ID가 없습니다.");
+      return;
+    }
+
     Alert.alert("리뷰 삭제", "정말로 이 리뷰를 삭제하시겠습니까?", [
       { text: "취소", style: "cancel" },
       {
@@ -111,11 +137,42 @@ export const MyReviewsScreen = () => {
         style: "destructive",
         onPress: async () => {
           try {
-            console.log("MyReviewsScreen - 리뷰 삭제 시작:", reviewId);
-            await deleteReview(reviewId);
-            console.log("MyReviewsScreen - 리뷰 삭제 성공");
+            console.log(
+              "MyReviewsScreen - 리뷰 삭제 시작 (직접 삭제 방식):",
+              reviewId
+            );
+
+            // 직접 삭제 방식 사용
+            const directResult = await deleteReviewDirectly(reviewId);
+            console.log("MyReviewsScreen - 직접 삭제 결과:", directResult);
+
+            // 삭제 시도를 위한 기존 방식도 병행 (백업)
+            try {
+              await deleteReview(reviewId);
+              console.log("MyReviewsScreen - 훅 삭제 완료");
+            } catch (err) {
+              console.error("MyReviewsScreen - 훅 삭제 실패:", err);
+            }
+
             // 삭제 후 리스트 새로고침
-            fetchReviews();
+            await fetchReviews();
+            console.log("MyReviewsScreen - 리뷰 목록 새로고침 완료");
+
+            // 사용자에게 완료 알림
+            Alert.alert("완료", "리뷰가 삭제되었습니다.", [
+              {
+                text: "확인",
+                onPress: () => {
+                  // 앱 UI 강제 새로고침
+                  setRefreshing(true);
+                  setTimeout(() => {
+                    fetchReviews().then(() => {
+                      setRefreshing(false);
+                    });
+                  }, 500);
+                },
+              },
+            ]);
           } catch (err) {
             console.error("MyReviewsScreen - 리뷰 삭제 오류:", err);
             Alert.alert("오류", "리뷰를 삭제하는 중 오류가 발생했습니다.");

@@ -21,6 +21,7 @@ import { CreateDiscussionScreen } from "../screens/CreateDiscussionScreen";
 import { BooksScreen } from "../screens/BooksScreen";
 import { BookDetailScreen } from "../screens/BookDetailScreen";
 import { SettingsScreen } from "../screens/SettingsScreen";
+import { SubscriptionScreen } from "../screens/SubscriptionScreen";
 
 import { THEME } from "../utils/theme";
 
@@ -259,6 +260,14 @@ export const AppNavigation = () => {
           component={SettingsScreen}
           options={{
             title: "설정",
+            animation: "slide_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="Subscription"
+          component={SubscriptionScreen}
+          options={{
+            title: "프리미엄 구독",
             animation: "slide_from_right",
           }}
         />

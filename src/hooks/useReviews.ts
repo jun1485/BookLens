@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Review } from "../types";
+import { reviewStorage } from "../services/storage";
 
 const MOCK_REVIEWS: Review[] = [
   {
@@ -232,31 +233,67 @@ export const useReviews = (
   // 리뷰 삭제하기
   const deleteReview = useCallback(
     async (reviewId: string) => {
+      console.log("[deleteReview] 함수 시작, ID:", reviewId);
+
       try {
-        console.log("리뷰 삭제 시작:", reviewId);
+        // 직접 AsyncStorage에서 데이터 가져오기
+        const storedData = await AsyncStorage.getItem(STORAGE_KEY);
+        console.log(
+          "[deleteReview] AsyncStorage에서 데이터 가져옴, 데이터 존재:",
+          !!storedData
+        );
 
-        // 모든 리뷰 데이터 가져오기
-        const reviewsData = await getAllReviews();
-
-        // 삭제할 리뷰 필터링
-        const updatedReviews = reviewsData.filter((r) => r.id !== reviewId);
-
-        if (updatedReviews.length === reviewsData.length) {
-          throw new Error("해당 리뷰를 찾을 수 없습니다");
+        if (!storedData) {
+          console.error("[deleteReview] 저장된 리뷰 데이터가 없습니다");
+          return false;
         }
 
-        // 업데이트된 데이터 저장
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedReviews));
-        console.log("리뷰 삭제 완료");
+        // 저장된 데이터를 JSON으로 파싱
+        const allReviews = JSON.parse(storedData);
+        console.log("[deleteReview] 전체 리뷰 수:", allReviews.length);
+
+        // 삭제할 리뷰 검색
+        const reviewIndex = allReviews.findIndex(
+          (r: Review) => r.id === reviewId
+        );
+        console.log("[deleteReview] 삭제할 리뷰 인덱스:", reviewIndex);
+
+        if (reviewIndex === -1) {
+          console.error(
+            "[deleteReview] 해당 ID의 리뷰를 찾을 수 없음:",
+            reviewId
+          );
+          return false;
+        }
+
+        // 리뷰 삭제
+        allReviews.splice(reviewIndex, 1);
+        console.log(
+          "[deleteReview] 리뷰 삭제 후 남은 리뷰 수:",
+          allReviews.length
+        );
+
+        // 업데이트된 데이터를 AsyncStorage에 저장
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(allReviews));
+        console.log("[deleteReview] AsyncStorage 업데이트 완료");
 
         // 현재 상태 업데이트
-        setReviews((prev) => prev.filter((r) => r.id !== reviewId));
-      } catch (err) {
-        console.error("리뷰 삭제 중 오류 발생:", err);
-        throw new Error("리뷰를 삭제할 수 없습니다");
+        setReviews((prevReviews) => {
+          const newReviews = prevReviews.filter((r) => r.id !== reviewId);
+          console.log(
+            "[deleteReview] UI 업데이트 완료, 새 리뷰 수:",
+            newReviews.length
+          );
+          return newReviews;
+        });
+
+        return true;
+      } catch (error) {
+        console.error("[deleteReview] 오류 발생:", error);
+        return false;
       }
     },
-    [getAllReviews]
+    [] // getAllReviews 의존성 제거
   );
 
   // 초기 리뷰 로드

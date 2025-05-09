@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,13 +10,30 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { userStorage } from "../services/storage"; // 사용자 스토리지 서비스 추가
 
 export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
+  const [isPremium, setIsPremium] = useState(false); // 프리미엄 상태 관리
+
+  // 구독 상태 확인
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      const premium = await userStorage.isPremium();
+      setIsPremium(premium);
+    };
+
+    checkPremiumStatus();
+  }, []);
 
   // 설정 화면으로 이동
   const navigateToSettings = () => {
     navigation.navigate("Settings");
+  };
+
+  // 구독 화면으로 이동
+  const navigateToSubscription = () => {
+    navigation.navigate("Subscription");
   };
 
   return (
@@ -38,11 +55,25 @@ export const ProfileScreen = () => {
               source={{ uri: "https://via.placeholder.com/150" }}
               style={styles.profileImage}
             />
+            {/* 프리미엄 배지 */}
+            {isPremium && (
+              <View style={styles.premiumBadge}>
+                <Ionicons name="star" size={14} color="#fff" />
+              </View>
+            )}
           </View>
 
           {/* 사용자 정보 */}
           <Text style={styles.username}>사용자</Text>
           <Text style={styles.email}>user123@example.com</Text>
+
+          {/* 프리미엄 상태 표시 */}
+          {isPremium && (
+            <View style={styles.premiumTag}>
+              <Ionicons name="checkmark-circle" size={14} color="#fff" />
+              <Text style={styles.premiumTagText}>프리미엄</Text>
+            </View>
+          )}
 
           {/* 통계 정보 */}
           <View style={styles.statsContainer}>
@@ -90,6 +121,25 @@ export const ProfileScreen = () => {
 
         {/* 메뉴 목록 */}
         <View style={styles.menuList}>
+          {/* 구독 메뉴 추가 */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={navigateToSubscription}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="diamond-outline" size={22} color="#6200EE" />
+              <Text style={styles.menuItemText}>
+                {isPremium ? "구독 관리" : "프리미엄 구독하기"}
+              </Text>
+            </View>
+            {isPremium && (
+              <View style={styles.premiumTagSmall}>
+                <Text style={styles.premiumTagSmallText}>프리미엄</Text>
+              </View>
+            )}
+            <Ionicons name="chevron-forward" size={18} color="#999" />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.menuItem}
             onPress={navigateToSettings}
@@ -152,10 +202,24 @@ const styles = StyleSheet.create({
     marginVertical: 15,
     borderWidth: 3,
     borderColor: "#6200EE",
+    position: "relative", // 프리미엄 배지를 위해 추가
   },
   profileImage: {
     width: "100%",
     height: "100%",
+  },
+  premiumBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#FFD700",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
   },
   username: {
     fontSize: 24,
@@ -166,6 +230,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
     marginTop: 5,
+  },
+  premiumTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#6200EE",
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginTop: 8,
+  },
+  premiumTagText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
+    marginLeft: 4,
+  },
+  premiumTagSmall: {
+    backgroundColor: "#6200EE",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginRight: 8,
+  },
+  premiumTagSmallText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
   },
   statsContainer: {
     flexDirection: "row",

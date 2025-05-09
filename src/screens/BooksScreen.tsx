@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useBestSellers } from "../hooks/useBooks";
 import { bookService } from "../services/api";
 import { Book } from "../types";
+import { AdBanner } from "../components/AdBanner";
 
 // 책 카드 컴포넌트
 const BookCard = ({ book, onPress }: { book: Book; onPress: () => void }) => {
@@ -176,6 +177,9 @@ export const BooksScreen = () => {
           onBookPress={handleBookPress}
         />
 
+        {/* 광고 배너 삽입 */}
+        <AdBanner containerId="books_top_banner" />
+
         {/* 최신 출시 섹션 */}
         <BookSection
           title="최신 출시"
@@ -203,6 +207,9 @@ export const BooksScreen = () => {
           }
           onBookPress={handleBookPress}
         />
+
+        {/* 하단 광고 배너 삽입 */}
+        <AdBanner containerId="books_bottom_banner" />
       </ScrollView>
     </SafeAreaView>
   );

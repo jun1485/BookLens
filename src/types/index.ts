@@ -32,7 +32,7 @@ export interface Genre {
 export interface Review {
   id: string;
   itemId: string | number; // 영화의 경우 number, 책의 경우 string(isbn)
-  itemType: 'movie' | 'book';
+  itemType: "movie" | "book";
   rating: number; // 1-5 별점
   content: string;
   createdAt: string;
@@ -47,6 +47,8 @@ export interface User {
   username: string;
   email: string;
   collections: Collection[];
+  isPremium: boolean; // 프리미엄 사용자 여부
+  subscriptionExpiry?: number; // 구독 만료 시간 (타임스탬프)
 }
 
 // 컬렉션 타입 정의
@@ -55,7 +57,7 @@ export interface Collection {
   name: string;
   items: Array<{
     id: string | number;
-    type: 'movie' | 'book';
+    type: "movie" | "book";
   }>;
 }
 
@@ -65,4 +67,36 @@ export interface ApiResponse<T> {
   total_results?: number;
   total_pages?: number;
   page?: number;
-} 
+}
+
+// 구독 플랜 타입 정의
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  duration: number; // 일 단위
+  description: string;
+  features: string[];
+}
+
+// 결제 정보 타입 정의
+export interface PaymentInfo {
+  paymentKey: string;
+  orderId: string;
+  amount: number;
+  orderName: string;
+  status:
+    | "READY"
+    | "IN_PROGRESS"
+    | "DONE"
+    | "CANCELED"
+    | "PARTIAL_CANCELED"
+    | "ABORTED"
+    | "EXPIRED";
+  transactionDate?: string;
+  subscriptionInfo?: {
+    planId: string;
+    startDate: number;
+    endDate: number;
+  };
+}

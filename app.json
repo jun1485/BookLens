@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "book-movie-review-app",
+    "name": "북&영화 리뷰",
     "slug": "book-movie-review-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -25,6 +25,8 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.bookmovie.app",
+      "versionCode": 1,
+      "permissions": ["com.android.vending.BILLING"],
       "intentFilters": [
         {
           "action": "VIEW",

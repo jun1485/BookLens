@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,17 +12,22 @@ import {
   Alert,
   Linking,
 } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/types";
+import { Book, Review } from "../types";
 import { Ionicons } from "@expo/vector-icons";
-import { Book } from "../types";
 import { bookService } from "../services/api";
 import { useReviews } from "../hooks/useReviews";
 import { useCollections } from "../hooks/useCollections";
 import { ReviewCard } from "../components/ReviewCard";
 
+type BookDetailRouteProp = RouteProp<RootStackParamList, "BookDetail">;
+type BookDetailNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
 export const BookDetailScreen = () => {
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<BookDetailRouteProp>();
+  const navigation = useNavigation<BookDetailNavigationProp>();
   const { isbn, book: initialBook } = route.params;
 
   const [book, setBook] = useState<Book | null>(initialBook || null);
@@ -34,6 +39,7 @@ export const BookDetailScreen = () => {
     reviews,
     loading: reviewsLoading,
     fetchReviews,
+    deleteReview,
   } = useReviews("book", isbn);
 
   // 컬렉션 관련 hook
@@ -154,6 +160,53 @@ export const BookDetailScreen = () => {
     }
   };
 
+  // 리뷰 수정 핸들러
+  const handleEditReview = (review: Review) => {
+    navigation.navigate("Review", {
+      itemId: isbn,
+      itemType: "book",
+      reviewId: review.id,
+      title: book?.title || "",
+    });
+  };
+
+  // 리뷰 삭제 핸들러
+  const handleDeleteReview = (reviewId: string) => {
+    console.log(
+      "BookDetailScreen - handleDeleteReview 호출됨. reviewId:",
+      reviewId
+    );
+    if (!reviewId) {
+      console.error("BookDetailScreen - 삭제할 리뷰 ID가 없습니다.");
+      return;
+    }
+
+    Alert.alert("리뷰 삭제", "정말로 이 리뷰를 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            console.log("BookDetailScreen - 리뷰 삭제 시작:", reviewId);
+            const result = await deleteReview(reviewId);
+            console.log("BookDetailScreen - 리뷰 삭제 결과:", result);
+
+            // 삭제 후 리뷰 목록 새로고침
+            await fetchReviews();
+            console.log("BookDetailScreen - 리뷰 목록 새로고침 완료");
+
+            // 사용자에게 삭제 완료 알림
+            Alert.alert("완료", "리뷰가 삭제되었습니다.");
+          } catch (err) {
+            console.error("BookDetailScreen - 리뷰 삭제 오류:", err);
+            Alert.alert("오류", "리뷰를 삭제하는 중 오류가 발생했습니다.");
+          }
+        },
+      },
+    ]);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -253,7 +306,13 @@ export const BookDetailScreen = () => {
             <ActivityIndicator style={styles.loader} color="#6200EE" />
           ) : reviews.length > 0 ? (
             reviews.map((review) => (
-              <ReviewCard key={review.id} review={review} />
+              <ReviewCard
+                key={review.id}
+                review={review}
+                currentUserId="user123"
+                onEdit={handleEditReview}
+                onDelete={handleDeleteReview}
+              />
             ))
           ) : (
             <View style={styles.emptyReviewsContainer}>

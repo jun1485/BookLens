@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,13 @@ import {
   ActivityIndicator,
   Share,
   BackHandler,
+  Alert,
 } from "react-native";
 import {
   useRoute,
   useNavigation,
   RouteProp,
   useFocusEffect,
-  CommonActions,
 } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -30,6 +30,9 @@ import {
   calculateAverageRating,
 } from "../utils/helpers";
 import { THEME } from "../utils/theme";
+import { ReviewCard } from "../components/ReviewCard";
+import { Review } from "../types";
+import { deleteReviewDirectly } from "../utils/storageReset";
 
 type MovieDetailRouteProp = RouteProp<RootStackParamList, "MovieDetail">;
 type MovieDetailNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -56,17 +59,15 @@ export const MovieDetailScreen = () => {
   const handleGoBack = () => {
     // 리뷰 작성 화면에서 왔다면 스택을 재구성하여 리뷰 작성 화면을 건너뜀
     if (fromScreen === "Review") {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [
-            {
-              name: "Main",
-              params: { screen: "MyReviews" },
-            },
-          ],
-        })
-      );
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "Main",
+            params: { screen: "MyReviews" },
+          },
+        ],
+      });
     } else {
       navigation.goBack();
     }
@@ -105,7 +106,7 @@ export const MovieDetailScreen = () => {
   const { movie, loading, error } = useMovieDetails(movieId);
 
   // 영화 리뷰 가져오기
-  const { reviews, fetchReviews } = useReviews("movie", movieId);
+  const { reviews, fetchReviews, deleteReview } = useReviews("movie", movieId);
 
   // 리뷰 새로고침 플래그가 있으면 리뷰 목록 새로고침
   useEffect(() => {
@@ -154,6 +155,64 @@ export const MovieDetailScreen = () => {
     } catch (error) {
       console.error("Error sharing movie:", error);
     }
+  };
+
+  // 리뷰 수정 핸들러
+  const handleEditReview = (review: Review) => {
+    navigation.navigate("Review", {
+      itemId: movieId,
+      itemType: "movie",
+      reviewId: review.id,
+      title: movieData?.title || "",
+    });
+  };
+
+  // 리뷰 삭제 핸들러
+  const handleDeleteReview = (reviewId: string) => {
+    console.log(
+      "🔴 MovieDetailScreen - handleDeleteReview 호출됨. reviewId:",
+      reviewId
+    );
+    if (!reviewId) {
+      console.error("MovieDetailScreen - 삭제할 리뷰 ID가 없습니다.");
+      return;
+    }
+
+    console.log("🔴 Alert 표시 직전");
+
+    Alert.alert("리뷰 삭제", "정말로 이 리뷰를 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            console.log("🔴 삭제 버튼 클릭됨. 리뷰 삭제 시작:", reviewId);
+
+            // 직접 삭제 방식으로 처리
+            const directResult = await deleteReviewDirectly(reviewId);
+            console.log("MovieDetailScreen - 직접 삭제 결과:", directResult);
+
+            if (directResult) {
+              // 리뷰 목록 갱신 - 삭제된 리뷰를 제외
+              // setReviews는 정의되지 않아 오류 발생하므로 제거
+
+              // 서버 동기화를 위해 fetchReviews 호출
+              await fetchReviews();
+              console.log("MovieDetailScreen - 리뷰 목록 새로고침 완료");
+
+              // 사용자에게 삭제 완료 알림
+              Alert.alert("완료", "리뷰가 삭제되었습니다.");
+            } else {
+              throw new Error("리뷰 삭제에 실패했습니다");
+            }
+          } catch (err) {
+            console.error("MovieDetailScreen - 리뷰 삭제 오류:", err);
+            Alert.alert("오류", "리뷰를 삭제하는 중 오류가 발생했습니다.");
+          }
+        },
+      },
+    ]);
   };
 
   if (loading && !initialMovie) {
@@ -209,7 +268,9 @@ export const MovieDetailScreen = () => {
 
           {movieData.genres && (
             <Text style={styles.genres}>
-              {movieData.genres.map((genre) => genre.name).join(", ")}
+              {movieData.genres
+                .map((genre: { name: string }) => genre.name)
+                .join(", ")}
             </Text>
           )}
         </View>
@@ -271,20 +332,43 @@ export const MovieDetailScreen = () => {
                 />
               </View>
               <Text style={styles.reviewContent}>{userReview.content}</Text>
-              <TouchableOpacity
-                style={styles.editReviewButton}
-                onPress={() =>
-                  navigation.navigate("Review", {
-                    itemId: movieId,
-                    itemType: "movie",
-                    reviewId: userReview.id,
-                    title: movieData.title,
-                  })
-                }
-              >
-                <Ionicons name="create-outline" size={16} color={THEME.info} />
-                <Text style={styles.editReviewText}>수정</Text>
-              </TouchableOpacity>
+              <View style={styles.reviewActions}>
+                <TouchableOpacity
+                  style={styles.reviewActionButton}
+                  onPress={() =>
+                    navigation.navigate("Review", {
+                      itemId: movieId,
+                      itemType: "movie",
+                      reviewId: userReview.id,
+                      title: movieData.title,
+                    })
+                  }
+                >
+                  <Ionicons
+                    name="create-outline"
+                    size={16}
+                    color={THEME.info}
+                  />
+                  <Text style={styles.editReviewText}>수정</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.reviewActionButton}
+                  onPress={() => {
+                    console.log("🔴 삭제 버튼 클릭됨:", userReview.id);
+                    handleDeleteReview(userReview.id);
+                  }}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={16}
+                    color={THEME.error}
+                  />
+                  <Text style={[styles.editReviewText, { color: THEME.error }]}>
+                    삭제
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
@@ -292,17 +376,13 @@ export const MovieDetailScreen = () => {
             ? reviews
                 .filter((review) => review.userId !== mockUserId)
                 .map((review) => (
-                  <View key={review.id} style={styles.reviewItem}>
-                    <View style={styles.reviewHeader}>
-                      <Text style={styles.reviewAuthor}>{review.username}</Text>
-                      <StarRating
-                        rating={review.rating}
-                        disabled={true}
-                        size={16}
-                      />
-                    </View>
-                    <Text style={styles.reviewContent}>{review.content}</Text>
-                  </View>
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                    currentUserId={mockUserId}
+                    onEdit={handleEditReview}
+                    onDelete={handleDeleteReview}
+                  />
                 ))
             : !userReview && (
                 <Text style={styles.emptyText}>
@@ -450,11 +530,18 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     marginBottom: 16,
   },
-  editReviewButton: {
+  reviewActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  reviewActionButton: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-end",
-    marginTop: 8,
+    marginLeft: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   editReviewText: {
     marginLeft: 4,

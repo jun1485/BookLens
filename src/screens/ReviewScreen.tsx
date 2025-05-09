@@ -119,7 +119,12 @@ export const ReviewScreen = () => {
   };
 
   const handleDelete = async () => {
-    if (!reviewId) return;
+    if (!reviewId) {
+      console.error("ReviewScreen - 삭제할 리뷰 ID가 없습니다.");
+      return;
+    }
+
+    console.log("ReviewScreen - handleDelete 호출됨, reviewId:", reviewId);
 
     Alert.alert("삭제 확인", "정말 이 리뷰를 삭제하시겠습니까?", [
       { text: "취소", style: "cancel" },
@@ -128,26 +133,37 @@ export const ReviewScreen = () => {
         style: "destructive",
         onPress: async () => {
           try {
+            console.log("ReviewScreen - 리뷰 삭제 시작:", reviewId);
             setSubmitting(true);
-            await deleteReview(reviewId);
 
-            // 리뷰 삭제 후 해당 아이템의 상세 페이지로 이동
-            if (itemType === "movie") {
-              navigation.navigate("MovieDetail", {
-                movieId: Number(itemId),
-                refresh: true,
-                fromScreen: "Review",
-              });
-            } else {
-              navigation.navigate("BookDetail", {
-                isbn: String(itemId),
-                refresh: true,
-                fromScreen: "Review",
-              });
-            }
+            const result = await deleteReview(reviewId);
+            console.log("ReviewScreen - 리뷰 삭제 결과:", result);
+
+            // 성공 알림
+            Alert.alert("완료", "리뷰가 삭제되었습니다", [
+              {
+                text: "확인",
+                onPress: () => {
+                  // 리뷰 삭제 후 해당 아이템의 상세 페이지로 이동
+                  if (itemType === "movie") {
+                    navigation.navigate("MovieDetail", {
+                      movieId: Number(itemId),
+                      refresh: true,
+                      fromScreen: "Review",
+                    });
+                  } else {
+                    navigation.navigate("BookDetail", {
+                      isbn: String(itemId),
+                      refresh: true,
+                      fromScreen: "Review",
+                    });
+                  }
+                },
+              },
+            ]);
           } catch (error) {
+            console.error("ReviewScreen - 리뷰 삭제 오류:", error);
             Alert.alert("오류", "리뷰 삭제 중 오류가 발생했습니다");
-            console.error("Error deleting review:", error);
           } finally {
             setSubmitting(false);
           }

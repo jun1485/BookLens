@@ -448,12 +448,7 @@ export const DiscussionDetailScreen = () => {
           renderAvatarOnTop
           showAvatarForEveryMessage={false}
           showUserAvatar
-          renderUsernameOnMessage
-          isKeyboardInternallyHandled={false}
-          keyboardShouldPersistTaps="handled"
           minInputToolbarHeight={50}
-          maxInputLength={1000}
-          bottomOffset={Platform.OS === "ios" ? 30 : 0}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>

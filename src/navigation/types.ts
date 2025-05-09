@@ -28,6 +28,7 @@ export type RootStackParamList = {
   DiscussionDetail: { discussionId: string; title: string };
   CreateDiscussion: undefined;
   Settings: undefined;
+  Subscription: undefined; // 구독 관리 화면
 };
 
 // 탭 내비게이션 타입

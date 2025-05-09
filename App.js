@@ -1,3 +1,4 @@
+import "react-native-url-polyfill/auto";
 import React, { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";

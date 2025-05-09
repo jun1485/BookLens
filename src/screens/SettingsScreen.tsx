@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,30 @@ import {
   ScrollView,
   Platform,
   SafeAreaView,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import RNRestart from "react-native-restart";
+import { userStorage } from "../services/storage";
+import { useNavigation } from "@react-navigation/native";
+import { checkAllStorage, deleteReviewDirectly } from "../utils/storageReset";
 
 export const SettingsScreen = () => {
+  const navigation = useNavigation<any>();
+  const [isPremium, setIsPremium] = useState(false);
+  const [reviewIdToDelete, setReviewIdToDelete] = useState("");
+
+  // 구독 상태 확인
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      const premium = await userStorage.isPremium();
+      setIsPremium(premium);
+    };
+
+    checkPremiumStatus();
+  }, []);
+
   // AsyncStorage 초기화 및 앱 재시작
   const handleClearStorageAndRestart = () => {
     Alert.alert(
@@ -127,9 +145,88 @@ export const SettingsScreen = () => {
     }
   };
 
+  // 구독 화면으로 이동
+  const navigateToSubscription = () => {
+    navigation.navigate("Subscription");
+  };
+
+  // 스토리지 정보 출력
+  const handleShowStorageInfo = async () => {
+    try {
+      const keys = await checkAllStorage();
+      Alert.alert(
+        "저장소 정보",
+        `총 ${keys.length}개의 키가 발견되었습니다. 상세 정보는 콘솔을 확인하세요.`
+      );
+    } catch (error) {
+      console.error("저장소 정보 확인 오류:", error);
+      Alert.alert("오류", "저장소 정보를 가져오는 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 리뷰 직접 삭제
+  const handleDirectlyDeleteReview = async () => {
+    if (!reviewIdToDelete.trim()) {
+      Alert.alert("오류", "삭제할 리뷰 ID를 입력해주세요.");
+      return;
+    }
+
+    Alert.alert(
+      "리뷰 직접 삭제",
+      `정말로 ID '${reviewIdToDelete}'의 리뷰를 삭제하시겠습니까?`,
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const result = await deleteReviewDirectly(reviewIdToDelete);
+              if (result) {
+                Alert.alert(
+                  "성공",
+                  "리뷰가 성공적으로 삭제되었습니다. 앱을 다시 시작하세요."
+                );
+                setReviewIdToDelete("");
+              } else {
+                Alert.alert(
+                  "실패",
+                  "리뷰를 삭제할 수 없습니다. 로그를 확인하세요."
+                );
+              }
+            } catch (error) {
+              console.error("리뷰 직접 삭제 오류:", error);
+              Alert.alert("오류", "리뷰 삭제 중 문제가 발생했습니다.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
+        {/* 구독 섹션 추가 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>구독</Text>
+
+          <TouchableOpacity style={styles.row} onPress={navigateToSubscription}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="diamond-outline" size={24} color="#6200EE" />
+              <Text style={styles.rowText}>
+                {isPremium ? "구독 관리" : "프리미엄 구독하기"}
+              </Text>
+            </View>
+            {isPremium && (
+              <View style={styles.premiumTag}>
+                <Text style={styles.premiumTagText}>프리미엄</Text>
+              </View>
+            )}
+            <Ionicons name="chevron-forward" size={20} color="#999" />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>앱 데이터</Text>
 
@@ -160,6 +257,39 @@ export const SettingsScreen = () => {
             </View>
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.row} onPress={handleShowStorageInfo}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="information-circle-outline"
+                size={24}
+                color="#6200EE"
+              />
+              <Text style={styles.rowText}>저장소 정보 자세히 보기</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#999" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 디버깅 섹션 추가 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>디버깅 도구</Text>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>리뷰 ID로 직접 삭제:</Text>
+            <TextInput
+              style={styles.input}
+              value={reviewIdToDelete}
+              onChangeText={setReviewIdToDelete}
+              placeholder="삭제할 리뷰 ID 입력"
+            />
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={handleDirectlyDeleteReview}
+            >
+              <Text style={styles.deleteButtonText}>삭제</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.dangerSection}>
@@ -226,6 +356,18 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     color: "#333",
   },
+  premiumTag: {
+    backgroundColor: "#6200EE",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginRight: 8,
+  },
+  premiumTagText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
   dangerSection: {
     marginHorizontal: 16,
     marginBottom: 40,
@@ -243,5 +385,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginLeft: 8,
+  },
+  inputContainer: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  inputLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+    color: "#666",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 8,
+    fontSize: 14,
+  },
+  deleteButton: {
+    backgroundColor: "#f44336",
+    padding: 10,
+    borderRadius: 4,
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontWeight: "500",
   },
 });
