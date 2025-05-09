@@ -13,64 +13,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Discussion } from "../types/discussion";
 import socketService from "../services/socketService";
-
-// 임시 데이터 (실제로는 API에서 가져와야 함)
-const DUMMY_DISCUSSIONS: Discussion[] = [
-  {
-    id: "1",
-    title: "기생충 영화에 대한 토론",
-    description: "봉준호 감독의 기생충 영화에 대해 이야기해봐요",
-    contentType: "movie",
-    contentId: 1234,
-    contentTitle: "기생충",
-    coverImage: "https://via.placeholder.com/150",
-    createdAt: new Date("2023-11-10"),
-    createdBy: {
-      id: "user1",
-      username: "영화광팬",
-    },
-    participants: 15,
-    lastMessage: "계단 장면의 의미가 무엇일까요?",
-    lastActivity: new Date("2023-11-20"),
-    isActive: true,
-  },
-  {
-    id: "2",
-    title: "해리 포터와 불의 잔 독서 토론",
-    description: "해리 포터 시리즈 4권에 대해 토론해요",
-    contentType: "book",
-    contentId: "isbn-9788983920904",
-    contentTitle: "해리 포터와 불의 잔",
-    coverImage: "https://via.placeholder.com/150",
-    createdAt: new Date("2023-10-15"),
-    createdBy: {
-      id: "user2",
-      username: "독서왕",
-    },
-    participants: 8,
-    lastMessage: "트리위저드 대회는 어떻게 진행되는 걸까요?",
-    lastActivity: new Date("2023-11-18"),
-    isActive: true,
-  },
-  {
-    id: "3",
-    title: "아바타: 물의 길 개봉 토론",
-    description: "아바타 2편에 대한 생각을 나눠봐요",
-    contentType: "movie",
-    contentId: 5678,
-    contentTitle: "아바타: 물의 길",
-    coverImage: "https://via.placeholder.com/150",
-    createdAt: new Date("2023-11-05"),
-    createdBy: {
-      id: "user3",
-      username: "영화마니아",
-    },
-    participants: 22,
-    lastMessage: "CG 기술에 대해 어떻게 생각하시나요?",
-    lastActivity: new Date("2023-11-19"),
-    isActive: true,
-  },
-];
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const DiscussionsScreen = () => {
   const navigation = useNavigation<any>();
@@ -82,13 +25,26 @@ export const DiscussionsScreen = () => {
   // 토론방 데이터 가져오기
   const fetchDiscussions = useCallback(async () => {
     try {
-      // 실제로는 API 호출로 데이터 가져오기
-      // 임시 데이터 사용
-      setTimeout(() => {
-        setDiscussions(DUMMY_DISCUSSIONS);
-        setLoading(false);
-        setRefreshing(false);
-      }, 1000);
+      // AsyncStorage에서 저장된 토론방 데이터 가져오기
+      const savedDiscussionsJson = await AsyncStorage.getItem(
+        "saved_discussions"
+      );
+      const savedDiscussions = savedDiscussionsJson
+        ? (JSON.parse(savedDiscussionsJson) as Discussion[])
+        : [];
+
+      // Date 객체로 변환 (JSON.parse는 Date를 문자열로 파싱)
+      const formattedDiscussions = savedDiscussions.map((discussion) => ({
+        ...discussion,
+        createdAt: new Date(discussion.createdAt),
+        lastActivity: discussion.lastActivity
+          ? new Date(discussion.lastActivity)
+          : undefined,
+      }));
+
+      setDiscussions(formattedDiscussions);
+      setLoading(false);
+      setRefreshing(false);
     } catch (error) {
       console.error("토론방 데이터를 가져오는 중 오류 발생:", error);
       setLoading(false);

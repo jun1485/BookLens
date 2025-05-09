@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   GiftedChat,
@@ -37,7 +37,7 @@ const DUMMY_MESSAGES: IMessage[] = [
     user: {
       _id: "user1",
       name: "영화광팬",
-      avatar: "https://via.placeholder.com/100",
+      avatar: "https://picsum.photos/seed/user1/100/100",
     },
   },
   {
@@ -47,7 +47,7 @@ const DUMMY_MESSAGES: IMessage[] = [
     user: {
       _id: "user2",
       name: "아카데미러버",
-      avatar: "https://via.placeholder.com/100",
+      avatar: "https://picsum.photos/seed/user2/100/100",
     },
   },
   {
@@ -57,7 +57,7 @@ const DUMMY_MESSAGES: IMessage[] = [
     user: {
       _id: "user3",
       name: "시네필",
-      avatar: "https://via.placeholder.com/100",
+      avatar: "https://picsum.photos/seed/user3/100/100",
     },
   },
 ];
@@ -72,6 +72,7 @@ const DUMMY_PARTICIPANTS = [
 
 export const DiscussionDetailScreen = () => {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const { discussionId, title } = route.params;
 
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -89,6 +90,28 @@ export const DiscussionDetailScreen = () => {
     (ChatUser & { isTyping: boolean })[]
   >([]);
   const [inputMessage, setInputMessage] = useState("");
+
+  // 뒤로가기 커스텀 핸들러
+  const handleGoBack = () => {
+    try {
+      navigation.goBack();
+    } catch (error) {
+      console.error("네비게이션 오류:", error);
+      navigation.navigate("Main", { screen: "Discussions" });
+    }
+  };
+
+  // 헤더 설정
+  useEffect(() => {
+    // 뒤로가기 버튼을 커스텀 버튼으로 대체
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity style={{ marginLeft: 10 }} onPress={handleGoBack}>
+          <Ionicons name="arrow-back" size={24} color="#2196F3" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   // 채팅 메시지를 AsyncStorage에 저장하는 함수
   const saveMessagesToStorage = async (msgs: IMessage[]) => {
@@ -125,7 +148,9 @@ export const DiscussionDetailScreen = () => {
           user: {
             _id: msg.user_id,
             name: msg.username,
-            avatar: msg.avatar_url || "https://via.placeholder.com/100",
+            avatar:
+              msg.avatar_url ||
+              `https://picsum.photos/seed/${msg.user_id}/100/100`,
           },
         }));
 
@@ -163,7 +188,9 @@ export const DiscussionDetailScreen = () => {
           user: {
             _id: newMessage.user_id,
             name: newMessage.username,
-            avatar: newMessage.avatar_url || "https://via.placeholder.com/100",
+            avatar:
+              newMessage.avatar_url ||
+              `https://picsum.photos/seed/${newMessage.user_id}/100/100`,
           },
         };
 
@@ -360,6 +387,12 @@ export const DiscussionDetailScreen = () => {
     );
   };
 
+  // 메시지 렌더링을 위한 커스텀 함수 - key prop 에러 해결
+  const renderMessage = (props: any) => {
+    const { currentMessage } = props;
+    return <View key={currentMessage._id}>{props.renderBubble(props)}</View>;
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -404,6 +437,7 @@ export const DiscussionDetailScreen = () => {
           renderFooter={renderFooter}
           renderInputToolbar={renderInputToolbar}
           renderComposer={renderCustomComposer}
+          renderMessage={renderMessage}
           placeholder="메시지 입력..."
           onInputTextChanged={handleInputTextChanged}
           text={inputMessage}

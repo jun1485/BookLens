@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -24,9 +24,57 @@ export const CreateDiscussionScreen = () => {
   const [contentId, setContentId] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [errors, setErrors] = useState({
+    title: false,
+    description: false,
+    contentTitle: false,
+    contentId: false,
+  });
+
+  // 뒤로가기 처리
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => {
+            try {
+              navigation.pop();
+            } catch (error) {
+              console.error("네비게이션 오류:", error);
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Main" }],
+              });
+            }
+          }}
+          style={{ marginLeft: 10 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
+  // 각 필드 검증 함수
+  const validateField = (field: string, value: string) => {
+    setErrors((prev) => ({ ...prev, [field]: value.trim() === "" }));
+    return value.trim() !== "";
+  };
+
   // 토론방 생성 처리
   const handleCreateDiscussion = async () => {
-    if (!title || !description || !contentTitle || !contentId) {
+    // 모든 필드 검증
+    const titleValid = validateField("title", title);
+    const descriptionValid = validateField("description", description);
+    const contentTitleValid = validateField("contentTitle", contentTitle);
+    const contentIdValid = validateField("contentId", contentId);
+
+    if (
+      !titleValid ||
+      !descriptionValid ||
+      !contentTitleValid ||
+      !contentIdValid
+    ) {
       Alert.alert("입력 오류", "모든 필드를 입력해주세요.");
       return;
     }
@@ -34,11 +82,10 @@ export const CreateDiscussionScreen = () => {
     setLoading(true);
 
     try {
-      // 실제로는 API 호출로 토론방 생성 요청
-      // 임시 데이터 사용
+      // 사용자 이름 가져오기
       const username = (await AsyncStorage.getItem("username")) || "익명";
 
-      // 임시 응답 (실제로는 API에서 받아옴)
+      // 새 토론방 데이터
       const newDiscussion = {
         id: `discussion-${Date.now()}`,
         title,
@@ -46,16 +93,36 @@ export const CreateDiscussionScreen = () => {
         contentType,
         contentId: contentType === "movie" ? Number(contentId) : contentId,
         contentTitle,
+        coverImage: `https://picsum.photos/seed/${Date.now()}/150/200`,
         createdAt: new Date(),
         createdBy: {
           id: "current_user_id",
           username,
         },
         participants: 1,
+        lastMessage: "",
+        lastActivity: new Date(),
         isActive: true,
       };
 
-      // 성공 시 딜레이 후 토론방으로 이동 (실제로는 API 응답 후 이동)
+      // AsyncStorage에서 기존 토론방 목록 가져오기
+      const savedDiscussionsJson = await AsyncStorage.getItem(
+        "saved_discussions"
+      );
+      const savedDiscussions = savedDiscussionsJson
+        ? JSON.parse(savedDiscussionsJson)
+        : [];
+
+      // 새 토론방 추가
+      const updatedDiscussions = [newDiscussion, ...savedDiscussions];
+
+      // AsyncStorage에 저장
+      await AsyncStorage.setItem(
+        "saved_discussions",
+        JSON.stringify(updatedDiscussions)
+      );
+
+      // 성공 시 토론방으로 이동
       setTimeout(() => {
         setLoading(false);
         navigation.navigate("DiscussionDetail", {
@@ -126,14 +193,23 @@ export const CreateDiscussionScreen = () => {
             {contentType === "movie" ? "영화 제목" : "도서 제목"}
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.contentTitle && styles.inputError]}
             value={contentTitle}
-            onChangeText={setContentTitle}
+            onChangeText={(text) => {
+              setContentTitle(text);
+              validateField("contentTitle", text);
+            }}
             placeholder={
               contentType === "movie" ? "영화 제목 입력" : "도서 제목 입력"
             }
             placeholderTextColor="#999"
           />
+          {errors.contentTitle && (
+            <Text style={styles.errorText}>
+              {contentType === "movie" ? "영화 제목을" : "도서 제목을"}{" "}
+              입력해주세요
+            </Text>
+          )}
         </View>
 
         <View style={styles.formGroup}>
@@ -141,39 +217,63 @@ export const CreateDiscussionScreen = () => {
             {contentType === "movie" ? "영화 ID" : "ISBN"}
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.contentId && styles.inputError]}
             value={contentId}
-            onChangeText={setContentId}
+            onChangeText={(text) => {
+              setContentId(text);
+              validateField("contentId", text);
+            }}
             placeholder={contentType === "movie" ? "영화 ID 입력" : "ISBN 입력"}
             placeholderTextColor="#999"
             keyboardType={contentType === "movie" ? "numeric" : "default"}
           />
+          {errors.contentId && (
+            <Text style={styles.errorText}>
+              {contentType === "movie" ? "영화 ID를" : "ISBN을"} 입력해주세요
+            </Text>
+          )}
         </View>
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>토론방 제목</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.title && styles.inputError]}
             value={title}
-            onChangeText={setTitle}
+            onChangeText={(text) => {
+              setTitle(text);
+              validateField("title", text);
+            }}
             placeholder="토론방 제목 입력"
             placeholderTextColor="#999"
             maxLength={50}
           />
+          {errors.title && (
+            <Text style={styles.errorText}>토론방 제목을 입력해주세요</Text>
+          )}
         </View>
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>설명</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[
+              styles.input,
+              styles.textArea,
+              errors.description && styles.inputError,
+            ]}
             value={description}
-            onChangeText={setDescription}
+            onChangeText={(text) => {
+              setDescription(text);
+              validateField("description", text);
+            }}
             placeholder="토론방 설명 입력"
             placeholderTextColor="#999"
             multiline
             numberOfLines={4}
             textAlignVertical="top"
           />
+          {errors.description && (
+            <Text style={styles.errorText}>토론방 설명을 입력해주세요</Text>
+          )}
         </View>
 
         <TouchableOpacity
@@ -217,6 +317,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#f9f9f9",
   },
+  inputError: {
+    borderColor: "#ff3b30",
+  },
+  errorText: {
+    color: "#ff3b30",
+    fontSize: 12,
+    marginTop: 4,
+  },
   textArea: {
     minHeight: 100,
   },
@@ -253,7 +361,7 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
   },
 });
