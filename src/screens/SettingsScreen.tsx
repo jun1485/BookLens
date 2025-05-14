@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import RNRestart from "react-native-restart";
 import { userStorage } from "../services/storage";
 import { useNavigation } from "@react-navigation/native";
 import { checkAllStorage, deleteReviewDirectly } from "../utils/storageReset";
@@ -36,7 +35,7 @@ export const SettingsScreen = () => {
   const handleClearStorageAndRestart = () => {
     Alert.alert(
       "데이터 초기화",
-      "모든 앱 데이터를 초기화하고 앱을 재시작하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      "모든 앱 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
       [
         { text: "취소", style: "cancel" },
         {
@@ -48,10 +47,12 @@ export const SettingsScreen = () => {
               await AsyncStorage.clear();
               console.log("모든 AsyncStorage 데이터 초기화 완료");
 
-              // 앱 재시작
-              setTimeout(() => {
-                RNRestart.Restart();
-              }, 1000);
+              // 앱 재시작 로직 수정
+              Alert.alert(
+                "초기화 완료",
+                "데이터가 초기화되었습니다. 앱을 완전히 종료한 후 다시 실행해주세요.",
+                [{ text: "확인", onPress: () => {} }]
+              );
             } catch (error) {
               console.error("데이터 초기화 중 오류 발생:", error);
               Alert.alert("오류", "데이터 초기화 중 문제가 발생했습니다.");

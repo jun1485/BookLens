@@ -1,0 +1,37 @@
+# 빌드에 필요하지 않은 파일 제외
+node_modules
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+web-report/
+
+# 테스트 관련 파일 제외
+__tests__
+coverage
+jest.config.js
+
+# 문서 파일 제외
+docs/
+*.md
+LICENSE
+
+# 로컬 개발 환경 파일 제외
+.expo/
+.vscode/
+.idea/
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 소스 컨트롤 파일 제외
+.git/
+.github/
+.gitignore
+.gitattributes 

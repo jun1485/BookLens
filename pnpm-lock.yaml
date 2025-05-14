@@ -17,15 +17,9 @@ importers:
       '@expo/webpack-config':
         specifier: ^19.0.1
         version: 19.0.1(expo@53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.8.1)(react-native-webview@13.13.5(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))
-      '@react-native-admob/admob':
-        specifier: ^2.0.1
-        version: 2.0.1(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       '@react-native-async-storage/async-storage':
         specifier: ^2.1.2
         version: 2.1.2(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))
-      '@react-native-community/async-storage':
-        specifier: ^1.12.1
-        version: 1.12.1(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       '@react-native-firebase/app':
         specifier: ^22.1.0
         version: 22.1.0(@react-native-async-storage/async-storage@2.1.2(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)))(expo@53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.8.1)(react-native-webview@13.13.5(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -53,9 +47,6 @@ importers:
       expo:
         specifier: ~53.0.9
         version: 53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.8.1)(react-native-webview@13.13.5(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
-      expo-modules-core:
-        specifier: ^2.3.13
-        version: 2.3.13
       expo-status-bar:
         specifier: ~2.2.3
         version: 2.2.3(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -71,18 +62,15 @@ importers:
       react-native:
         specifier: 0.79.2
         version: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
-      react-native-admob-native-ads:
-        specifier: ^0.7.6
-        version: 0.7.6(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))
       react-native-dotenv:
         specifier: ^3.4.11
         version: 3.4.11(@babel/runtime@7.27.1)
       react-native-gifted-chat:
-        specifier: 2.4.0
-        version: 2.4.0(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+        specifier: ^2.8.1
+        version: 2.8.1(react-native-keyboard-controller@1.17.1(react-native-reanimated@3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native-reanimated@3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       react-native-reanimated:
-        specifier: 3.6.2
-        version: 3.6.2(@babel/core@7.27.1)(@babel/plugin-proposal-nullish-coalescing-operator@7.18.6(@babel/core@7.27.1))(@babel/plugin-proposal-optional-chaining@7.21.0(@babel/core@7.27.1))(@babel/plugin-transform-arrow-functions@7.27.1(@babel/core@7.27.1))(@babel/plugin-transform-shorthand-properties@7.27.1(@babel/core@7.27.1))(@babel/plugin-transform-template-literals@7.27.1(@babel/core@7.27.1))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+        specifier: ~3.17.4
+        version: 3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       react-native-safe-area-context:
         specifier: ^5.4.0
         version: 5.4.0(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -111,6 +99,9 @@ importers:
       '@babel/core':
         specifier: ^7.25.2
         version: 7.27.1
+      '@expo/metro-config':
+        specifier: ^0.20.14
+        version: 0.20.14
       '@types/react':
         specifier: ~19.0.10
         version: 19.0.14
@@ -129,9 +120,6 @@ importers:
       eslint-plugin-react-native:
         specifier: ^5.0.0
         version: 5.0.0(eslint@9.26.0)
-      react-native-restart:
-        specifier: ^0.0.27
-        version: 0.0.27(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       typescript:
         specifier: ~5.8.3
         version: 5.8.3
@@ -270,20 +258,6 @@ packages:
   '@babel/plugin-proposal-export-default-from@7.27.1':
     resolution: {integrity: sha512-hjlsMBl1aJc5lp8MoCDEZCiYzlgdRAShOjAfRw6X+GlpLpUPU7c3XNLsKFZbQk/1cRzBlJ7CXg3xJAJMrFa1Uw==}
     engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-proposal-nullish-coalescing-operator@7.18.6':
-    resolution: {integrity: sha512-wQxQzxYeJqHcfppzBDnm1yAY0jSRkUXR2z8RePZYrKwMKgMlE8+Z6LUno+bd6LvbGh8Gltvy74+9pIYkr+XkKA==}
-    engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-proposal-optional-chaining@7.21.0':
-    resolution: {integrity: sha512-p4zeefM72gpmEe2fkUr/OnOXpWEf8nAgk7ZYVqqfFiyIG7oFfVZcCrU64hWn5xp4tQ9LkV4bTIa5rD0KANpKNA==}
-    engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -505,12 +479,6 @@ packages:
 
   '@babel/plugin-transform-numeric-separator@7.27.1':
     resolution: {integrity: sha512-fdPKAcujuvEChxDBJ5c+0BTaS6revLV7CJL08e4m3de8qJfNIuCc2nc7XJYOjBoTMJeqSmwXJ0ypE14RCjLwaw==}
-    engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-transform-object-assign@7.27.1':
-    resolution: {integrity: sha512-LP6tsnirA6iy13uBKiYgjJsfQrodmlSrpZModtlo1Vk8sOO68gfo7dfA9TGJyEgxTiO7czK4EGZm8FJEZtk4kQ==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
@@ -757,10 +725,10 @@ packages:
   '@expo/prebuild-config@9.0.6':
     resolution: {integrity: sha512-HDTdlMkTQZ95rd6EpvuLM+xkZV03yGLc38FqI37qKFLJtUN1WnYVaWsuXKoljd1OrVEVsHe6CfqKwaPZ52D56Q==}
 
-  '@expo/react-native-action-sheet@4.0.1':
-    resolution: {integrity: sha512-FwCFpjpB6yzrK8CIWssLlh/i6zQFytFBiJfNdz0mJ2ckU4hWk8SrjB37P0Q4kF7w0bnIdYzPgRbdPR9hnfFqPw==}
+  '@expo/react-native-action-sheet@4.1.1':
+    resolution: {integrity: sha512-4KRaba2vhqDRR7ObBj6nrD5uJw8ePoNHdIOMETTpgGTX7StUbrF4j/sfrP1YUyaPEa1P8FXdwG6pB+2WtrJd1A==}
     peerDependencies:
-      react: '>=16.3.0'
+      react: '>=18.0.0'
 
   '@expo/sdk-runtime-versions@1.0.0':
     resolution: {integrity: sha512-Doz2bfiPndXYFPMRwPyGa1k5QaKDVpY806UJj570epIiMzWaYyCtobasyfC++qfIXVb5Ocy7r3tP9d62hAQ7IQ==}
@@ -1153,24 +1121,10 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@react-native-admob/admob@2.0.1':
-    resolution: {integrity: sha512-IHDzwC9n+15w3Cg03oWB4rHXyUpkTFyoP3gPEzVbZEnPDyUdl1eacmM66MovNoVc5m6h7pXNa0AXzgL+yIEW7A==}
-    deprecated: This library is deprecated and replaced with https://github.com/invertase/react-native-google-mobile-ads
-    peerDependencies:
-      react: '*'
-      react-native: '*'
-
   '@react-native-async-storage/async-storage@2.1.2':
     resolution: {integrity: sha512-dvlNq4AlGWC+ehtH12p65+17V0Dx7IecOWl6WanF2ja38O1Dcjjvn7jVzkUHJ5oWkQBlyASurTPlTHgKXyYiow==}
     peerDependencies:
       react-native: ^0.0.0-0 || >=0.65 <1.0
-
-  '@react-native-community/async-storage@1.12.1':
-    resolution: {integrity: sha512-70WGaH3PKYASi4BThuEEKMkyAgE9k7VytBqmgPRx3MzJx9/MkspwqJGmn3QLCgHLIFUgF1pit2mWICbRJ3T3lg==}
-    deprecated: 'Async Storage has moved to new organization: https://github.com/react-native-async-storage/async-storage'
-    peerDependencies:
-      react: ^16.8
-      react-native: '>=0.59'
 
   '@react-native-firebase/app@22.1.0':
     resolution: {integrity: sha512-s01yjF92Fpre7Ff5UzNpVE4q25x2eF+nD8SGzZzBp7nTQjK+4U+VllJ3ajvbjJkfIyMYNBowM135iK/DO5cwDA==}
@@ -1396,6 +1350,12 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
+
+  '@types/lodash.isequal@4.5.8':
+    resolution: {integrity: sha512-uput6pg4E/tj2LGxCZo9+y27JNyB2OZuuI/T5F+ylVDYuqICLG2/ktjxx0v6GvVntAf8TvEzeQLcV0ffRirXuA==}
+
+  '@types/lodash@4.17.16':
+    resolution: {integrity: sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g==}
 
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
@@ -2221,8 +2181,8 @@ packages:
     resolution: {integrity: sha512-BS8PfmtDGnrgYdOonGZQdLZslWIeCGFP9tpan0hi1Co2Zr2NKADsvGYA8XxuG/4UWgJ6Cjtv+YJnB6MM69QGlQ==}
     engines: {node: '>= 0.4'}
 
-  dayjs@1.8.26:
-    resolution: {integrity: sha512-KqtAuIfdNfZR5sJY1Dixr2Is4ZvcCqhb0dZpCOt5dGEFiMzoIbjkTSzUb4QKTCsP+WNpGwUjAFIZrnZvUxxkhw==}
+  dayjs@1.11.13:
+    resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
 
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
@@ -2270,11 +2230,6 @@ packages:
     resolution: {integrity: sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==}
     engines: {node: '>=0.10'}
 
-  deep-assign@3.0.0:
-    resolution: {integrity: sha512-YX2i9XjJ7h5q/aQ/IM9PEwEnDqETAIYbggmdDB3HLTlSgo1CxPsj6pvhPG68rq6SVE0+p+6Ywsm5fTYNrYtBWw==}
-    engines: {node: '>=0.10.0'}
-    deprecated: Check out `lodash.merge` or `merge-options` instead.
-
   deep-extend@0.6.0:
     resolution: {integrity: sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA==}
     engines: {node: '>=4.0.0'}
@@ -2320,10 +2275,6 @@ packages:
   depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
     engines: {node: '>= 0.8'}
-
-  dequal@2.0.3:
-    resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
-    engines: {node: '>=6'}
 
   destroy@1.2.0:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
@@ -3188,10 +3139,6 @@ packages:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
     engines: {node: '>=0.12.0'}
 
-  is-obj@1.0.1:
-    resolution: {integrity: sha512-l4RyHgRqGN4Y3+9JHVrNqO+tN0rV5My76uW5/nuO4K1b6vw5G8d/cmFjP9tRfEsdhZNt0IFdZuK/c2Vr4Nb+Qg==}
-    engines: {node: '>=0.10.0'}
-
   is-path-cwd@2.2.0:
     resolution: {integrity: sha512-w942bTcih8fdJPJmQHFzkS76NEP8Kzzvmw92cXsazb8intwLqPibPPdXf4ANdKV3rYMuuQYGIWtvz9JilB3NFQ==}
     engines: {node: '>=6'}
@@ -3500,6 +3447,10 @@ packages:
 
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
+
+  lodash.isequal@4.5.0:
+    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.memoize@4.1.2:
     resolution: {integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==}
@@ -4274,9 +4225,6 @@ packages:
     resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
     engines: {node: '>= 6'}
 
-  prop-types@15.7.2:
-    resolution: {integrity: sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==}
-
   prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
 
@@ -4359,11 +4307,6 @@ packages:
   react-is@19.1.0:
     resolution: {integrity: sha512-Oe56aUPnkHyyDxxkvqtd7KkdQP5uIUfHxd5XTb3wE9d/kRnZLmKbDB0GWk919tdQ+mxxPtG6EAs6RMT6i1qtHg==}
 
-  react-native-admob-native-ads@0.7.6:
-    resolution: {integrity: sha512-nApNDUVKrjXqwSxxrIvn1R0IJQs3VHwViK6G4Mbo2irNW8iP/RYC/t6fvvbH9emtHle0AYTwvwIW5JiuieuN8Q==}
-    peerDependencies:
-      react-native: '*'
-
   react-native-communications@2.2.1:
     resolution: {integrity: sha512-5+C0X9mopI0+qxyQHzOPEi5v5rxNBQjxydPPiKMQSlX1RBIcJ8uTcqUPssQ9Mo8p6c1IKIWJUSqCj4jAmD0qVQ==}
 
@@ -4378,11 +4321,14 @@ packages:
       react: '*'
       react-native: '*'
 
-  react-native-gifted-chat@2.4.0:
-    resolution: {integrity: sha512-dTpSMH8T4s16dM75oLXiDawpXoVSnApJZY9TWf0jYSRShw++0knnp38hO857zOrt6XhqJKm0JntT0pywYI3rYg==}
+  react-native-gifted-chat@2.8.1:
+    resolution: {integrity: sha512-x4Kq0YvmaHqQg/ENAmFzwcjJyH31cGrCWETFzUMmTZgWsXkkiJ1MamTnkLGQp6deVxM6G0QNxrF7IZnBOeMbsw==}
+    engines: {node: '>=18'}
     peerDependencies:
-      react: '*'
+      react: '>=18.0.0'
       react-native: '*'
+      react-native-keyboard-controller: '>=1.0.0'
+      react-native-reanimated: '>=3.0.0'
 
   react-native-iphone-x-helper@1.3.1:
     resolution: {integrity: sha512-HOf0jzRnq2/aFUcdCJ9w9JGzN3gdEg0zFE4FyYlp4jtidqU03D5X7ZegGKfT1EWteR0gPBGp9ye5T5FvSWi9Yg==}
@@ -4395,8 +4341,15 @@ packages:
       react: '*'
       react-native: '*'
 
-  react-native-lightbox-v2@0.9.0:
-    resolution: {integrity: sha512-Fc5VFHFj2vokS+OegyTsANKb1CYoUlOtAv+EBH5wtpJn1b5cey6jVXH7136G5+8OC9JmKWSgKHc5thFwOoZTUg==}
+  react-native-keyboard-controller@1.17.1:
+    resolution: {integrity: sha512-YM3GYvtkuWimCKkZFURn5hIb1WiKOQqi2DijdwZSF5QSSzGqfqwzEEC3bm1xCN8HGHAEIXAaWIBUsc3Xp5L+Ng==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+      react-native-reanimated: '>=3.0.0'
+
+  react-native-lightbox-v2@0.9.2:
+    resolution: {integrity: sha512-+8LwINeSWvPP69YAyWhiJQyaw4Gtu8X4EMvT3PEN615NrOeDaz8jOcIw73pzYJst3z4Z0vxvFB73iH16wCPXtw==}
     peerDependencies:
       react: '>=16.8.0'
       react-native: '>=0.61.0'
@@ -4407,21 +4360,10 @@ packages:
       react: '*'
       react-native: '*'
 
-  react-native-reanimated@3.6.2:
-    resolution: {integrity: sha512-IIMREMOrxhtK35drfpzh2UhxNqAOHnuvGgtMofj7yHcMj16tmWZR2zFvMUf6z2MfmXv+aVgFQ6TRZ6yKYf7LNA==}
+  react-native-reanimated@3.17.5:
+    resolution: {integrity: sha512-SxBK7wQfJ4UoWoJqQnmIC7ZjuNgVb9rcY5Xc67upXAFKftWg0rnkknTw6vgwnjRcvYThrjzUVti66XoZdDJGtw==}
     peerDependencies:
       '@babel/core': ^7.0.0-0
-      '@babel/plugin-proposal-nullish-coalescing-operator': ^7.0.0-0
-      '@babel/plugin-proposal-optional-chaining': ^7.0.0-0
-      '@babel/plugin-transform-arrow-functions': ^7.0.0-0
-      '@babel/plugin-transform-shorthand-properties': ^7.0.0-0
-      '@babel/plugin-transform-template-literals': ^7.0.0-0
-      react: '*'
-      react-native: '*'
-
-  react-native-restart@0.0.27:
-    resolution: {integrity: sha512-8KScVICrXwcTSJ1rjWkqVTHyEKQIttm5AIMGSK1QG1+RS5owYlE4z/1DykOTdWfVl9l16FIk0w9Xzk9ZO6jxlA==}
-    peerDependencies:
       react: '*'
       react-native: '*'
 
@@ -4434,13 +4376,6 @@ packages:
   react-native-screens@4.10.0:
     resolution: {integrity: sha512-Tw21NGuXm3PbiUGtZd0AnXirUixaAbPXDjNR0baBH7/WJDaDTTELLcQ7QRXuqAWbmr/EVCrKj1348ei1KFIr8A==}
     peerDependencies:
-      react: '*'
-      react-native: '*'
-
-  react-native-typing-animation@0.1.7:
-    resolution: {integrity: sha512-4H3rF9M+I2yAZpYJcY0Mb29TXkn98QK12rrKSY6LZj1BQD9NNmRZuNXzwX4XHapsIz+N/J8M3p27FOQPbfzqeg==}
-    peerDependencies:
-      prop-types: '*'
       react: '*'
       react-native: '*'
 
@@ -5186,21 +5121,10 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  use-deep-compare-effect@1.8.1:
-    resolution: {integrity: sha512-kbeNVZ9Zkc0RFGpfMN3MNfaKNvcLNyxOAAd9O4CBZ+kCBXXscn9s/4I+8ytUER4RDpEYs5+O6Rs4PqiZ+rHr5Q==}
-    engines: {node: '>=10', npm: '>=6'}
-    peerDependencies:
-      react: '>=16.13'
-
   use-latest-callback@0.2.3:
     resolution: {integrity: sha512-7vI3fBuyRcP91pazVboc4qu+6ZqM8izPWX9k7cRnT8hbD5svslcknsh3S9BUhaK11OmgTV4oWZZVSeQAiV53SQ==}
     peerDependencies:
       react: '>=16.8'
-
-  use-memo-one@1.1.3:
-    resolution: {integrity: sha512-g66/K7ZQGYrI6dy8GLpVcMsBp4s17xNkYJVSMvTEevGy3nDxHOfE6z8BVE22+5G5x7t3+bhzrlTDB7ObrEE0cQ==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
 
   use-sync-external-store@1.5.0:
     resolution: {integrity: sha512-Rb46I4cGGVBmjamjphe8L/UnvJD+uPPtTkNvX5mZgqdbavhI4EbgIWJiIHXJ8bc/i9EQGPRh4DwEURJ552Do0A==}
@@ -5216,11 +5140,6 @@ packages:
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
-
-  uuid@3.4.0:
-    resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
-    hasBin: true
 
   uuid@7.0.3:
     resolution: {integrity: sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==}
@@ -5680,21 +5599,6 @@ snapshots:
       '@babel/core': 7.27.1
       '@babel/helper-plugin-utils': 7.27.1
 
-  '@babel/plugin-proposal-nullish-coalescing-operator@7.18.6(@babel/core@7.27.1)':
-    dependencies:
-      '@babel/core': 7.27.1
-      '@babel/helper-plugin-utils': 7.27.1
-      '@babel/plugin-syntax-nullish-coalescing-operator': 7.8.3(@babel/core@7.27.1)
-
-  '@babel/plugin-proposal-optional-chaining@7.21.0(@babel/core@7.27.1)':
-    dependencies:
-      '@babel/core': 7.27.1
-      '@babel/helper-plugin-utils': 7.27.1
-      '@babel/helper-skip-transparent-expression-wrappers': 7.27.1
-      '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.27.1)
-    transitivePeerDependencies:
-      - supports-color
-
   '@babel/plugin-syntax-async-generators@7.8.4(@babel/core@7.27.1)':
     dependencies:
       '@babel/core': 7.27.1
@@ -5917,11 +5821,6 @@ snapshots:
       '@babel/helper-plugin-utils': 7.27.1
 
   '@babel/plugin-transform-numeric-separator@7.27.1(@babel/core@7.27.1)':
-    dependencies:
-      '@babel/core': 7.27.1
-      '@babel/helper-plugin-utils': 7.27.1
-
-  '@babel/plugin-transform-object-assign@7.27.1(@babel/core@7.27.1)':
     dependencies:
       '@babel/core': 7.27.1
       '@babel/helper-plugin-utils': 7.27.1
@@ -6398,7 +6297,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@expo/react-native-action-sheet@4.0.1(react@19.0.0)':
+  '@expo/react-native-action-sheet@4.1.1(react@19.0.0)':
     dependencies:
       '@types/hoist-non-react-statics': 3.3.6
       hoist-non-react-statics: 3.3.2
@@ -6972,21 +6871,9 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@react-native-admob/admob@2.0.1(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      react: 19.0.0
-      react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
-      use-deep-compare-effect: 1.8.1(react@19.0.0)
-
   '@react-native-async-storage/async-storage@2.1.2(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))':
     dependencies:
       merge-options: 3.0.4
-      react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
-
-  '@react-native-community/async-storage@1.12.1(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      deep-assign: 3.0.0
-      react: 19.0.0
       react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
 
   '@react-native-firebase/app@22.1.0(@react-native-async-storage/async-storage@2.1.2(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)))(expo@53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.8.1)(react-native-webview@13.13.5(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)':
@@ -7317,6 +7204,12 @@ snapshots:
       '@types/istanbul-lib-report': 3.0.3
 
   '@types/json-schema@7.0.15': {}
+
+  '@types/lodash.isequal@4.5.8':
+    dependencies:
+      '@types/lodash': 4.17.16
+
+  '@types/lodash@4.17.16': {}
 
   '@types/mime@1.3.5': {}
 
@@ -8337,7 +8230,7 @@ snapshots:
       es-errors: 1.3.0
       is-data-view: 1.0.2
 
-  dayjs@1.8.26: {}
+  dayjs@1.11.13: {}
 
   debug@2.6.9:
     dependencies:
@@ -8360,10 +8253,6 @@ snapshots:
       ms: 2.1.3
 
   decode-uri-component@0.2.2: {}
-
-  deep-assign@3.0.0:
-    dependencies:
-      is-obj: 1.0.1
 
   deep-extend@0.6.0: {}
 
@@ -8408,8 +8297,6 @@ snapshots:
   depd@1.1.2: {}
 
   depd@2.0.0: {}
-
-  dequal@2.0.3: {}
 
   destroy@1.2.0: {}
 
@@ -9521,8 +9408,6 @@ snapshots:
 
   is-number@7.0.0: {}
 
-  is-obj@1.0.1: {}
-
   is-path-cwd@2.2.0: {}
 
   is-path-in-cwd@2.1.0:
@@ -9838,6 +9723,8 @@ snapshots:
   lodash.camelcase@4.3.0: {}
 
   lodash.debounce@4.0.8: {}
+
+  lodash.isequal@4.5.0: {}
 
   lodash.memoize@4.1.2: {}
 
@@ -10642,12 +10529,6 @@ snapshots:
       kleur: 3.0.3
       sisteransi: 1.0.5
 
-  prop-types@15.7.2:
-    dependencies:
-      loose-envify: 1.4.0
-      object-assign: 4.1.1
-      react-is: 16.13.1
-
   prop-types@15.8.1:
     dependencies:
       loose-envify: 1.4.0
@@ -10751,10 +10632,6 @@ snapshots:
 
   react-is@19.1.0: {}
 
-  react-native-admob-native-ads@0.7.6(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)):
-    dependencies:
-      react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
-
   react-native-communications@2.2.1: {}
 
   react-native-dotenv@3.4.11(@babel/runtime@7.27.1):
@@ -10767,20 +10644,20 @@ snapshots:
       react: 19.0.0
       react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
 
-  react-native-gifted-chat@2.4.0(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
+  react-native-gifted-chat@2.8.1(react-native-keyboard-controller@1.17.1(react-native-reanimated@3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native-reanimated@3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:
-      '@expo/react-native-action-sheet': 4.0.1(react@19.0.0)
-      dayjs: 1.8.26
-      prop-types: 15.7.2
+      '@expo/react-native-action-sheet': 4.1.1(react@19.0.0)
+      '@types/lodash.isequal': 4.5.8
+      dayjs: 1.11.13
+      lodash.isequal: 4.5.0
       react: 19.0.0
       react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
       react-native-communications: 2.2.1
       react-native-iphone-x-helper: 1.3.1(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))
-      react-native-lightbox-v2: 0.9.0(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+      react-native-keyboard-controller: 1.17.1(react-native-reanimated@3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+      react-native-lightbox-v2: 0.9.2(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       react-native-parsed-text: 0.0.22(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
-      react-native-typing-animation: 0.1.7(prop-types@15.7.2)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
-      use-memo-one: 1.1.3(react@19.0.0)
-      uuid: 3.4.0
+      react-native-reanimated: 3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
 
   react-native-iphone-x-helper@1.3.1(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)):
     dependencies:
@@ -10791,7 +10668,14 @@ snapshots:
       react: 19.0.0
       react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
 
-  react-native-lightbox-v2@0.9.0(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
+  react-native-keyboard-controller@1.17.1(react-native-reanimated@3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
+    dependencies:
+      react: 19.0.0
+      react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
+      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+      react-native-reanimated: 3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+
+  react-native-lightbox-v2@0.9.2(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:
       react: 19.0.0
       react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
@@ -10802,27 +10686,25 @@ snapshots:
       react: 19.0.0
       react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
 
-  react-native-reanimated@3.6.2(@babel/core@7.27.1)(@babel/plugin-proposal-nullish-coalescing-operator@7.18.6(@babel/core@7.27.1))(@babel/plugin-proposal-optional-chaining@7.21.0(@babel/core@7.27.1))(@babel/plugin-transform-arrow-functions@7.27.1(@babel/core@7.27.1))(@babel/plugin-transform-shorthand-properties@7.27.1(@babel/core@7.27.1))(@babel/plugin-transform-template-literals@7.27.1(@babel/core@7.27.1))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
+  react-native-reanimated@3.17.5(@babel/core@7.27.1)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:
       '@babel/core': 7.27.1
-      '@babel/plugin-proposal-nullish-coalescing-operator': 7.18.6(@babel/core@7.27.1)
-      '@babel/plugin-proposal-optional-chaining': 7.21.0(@babel/core@7.27.1)
       '@babel/plugin-transform-arrow-functions': 7.27.1(@babel/core@7.27.1)
-      '@babel/plugin-transform-object-assign': 7.27.1(@babel/core@7.27.1)
+      '@babel/plugin-transform-class-properties': 7.27.1(@babel/core@7.27.1)
+      '@babel/plugin-transform-classes': 7.27.1(@babel/core@7.27.1)
+      '@babel/plugin-transform-nullish-coalescing-operator': 7.27.1(@babel/core@7.27.1)
+      '@babel/plugin-transform-optional-chaining': 7.27.1(@babel/core@7.27.1)
       '@babel/plugin-transform-shorthand-properties': 7.27.1(@babel/core@7.27.1)
       '@babel/plugin-transform-template-literals': 7.27.1(@babel/core@7.27.1)
+      '@babel/plugin-transform-unicode-regex': 7.27.1(@babel/core@7.27.1)
       '@babel/preset-typescript': 7.27.1(@babel/core@7.27.1)
       convert-source-map: 2.0.0
       invariant: 2.2.4
       react: 19.0.0
       react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
+      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
     transitivePeerDependencies:
       - supports-color
-
-  react-native-restart@0.0.27(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
-    dependencies:
-      react: 19.0.0
-      react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
 
   react-native-safe-area-context@5.4.0(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:
@@ -10835,12 +10717,6 @@ snapshots:
       react-freeze: 1.0.4(react@19.0.0)
       react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
       warn-once: 0.1.1
-
-  react-native-typing-animation@0.1.7(prop-types@15.7.2)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
-    dependencies:
-      prop-types: 15.7.2
-      react: 19.0.0
-      react-native: 0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)
 
   react-native-url-polyfill@2.0.0(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.14)(react@19.0.0)):
     dependencies:
@@ -11741,17 +11617,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  use-deep-compare-effect@1.8.1(react@19.0.0):
-    dependencies:
-      '@babel/runtime': 7.27.1
-      dequal: 2.0.3
-      react: 19.0.0
-
   use-latest-callback@0.2.3(react@19.0.0):
-    dependencies:
-      react: 19.0.0
-
-  use-memo-one@1.1.3(react@19.0.0):
     dependencies:
       react: 19.0.0
 
@@ -11764,8 +11630,6 @@ snapshots:
   utila@0.4.0: {}
 
   utils-merge@1.0.1: {}
-
-  uuid@3.4.0: {}
 
   uuid@7.0.3: {}
 
