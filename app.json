@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "북&영화 리뷰",
-    "slug": "book-movie-review-app",
+    "name": "BookLens",
+    "slug": "booklens",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -1,4 +1,4 @@
-# 📚🎬 북무비 - 나만의 영화/책 리뷰 앱
+# 📚🎬 BookLens - 나만의 영화/책 리뷰 앱
 
 React Native와 TypeScript로 개발된 영화/책 리뷰 및 추천 앱입니다.
 
