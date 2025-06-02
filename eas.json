@@ -17,7 +17,7 @@
         "gradleCommand": ":app:bundleRelease"
       },
       "env": {
-        "TMDB_API_KEY": "your_tmdb_api_key_here"
+        "TMDB_API_KEY": "placeholder_api_key"
       },
       "node": "18.18.0"
     }

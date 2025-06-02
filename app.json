@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "BookLens",
-    "slug": "booklens",
+    "slug": "book-movie-review-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,6 +16,14 @@
       "output": "static"
     },
     "scheme": "booklens",
+    "plugins": [
+      [
+        "react-native-iap",
+        {
+          "paymentProvider": "Play Store"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.booklens.app",

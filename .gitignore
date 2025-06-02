@@ -1,5 +1,8 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+# Cursor
+.cursor
+
 # dependencies
 node_modules/
 
@@ -8,6 +11,7 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+android/
 
 # Native
 .kotlin/

@@ -16,7 +16,7 @@ import { CollectionsScreen } from "../screens/CollectionsScreen";
 import { CollectionDetailScreen } from "../screens/CollectionDetailScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { DiscussionsScreen } from "../screens/DiscussionsScreen";
-import { DiscussionDetailScreen } from "../screens/DiscussionDetailScreen";
+// import { DiscussionDetailScreen } from "../screens/DiscussionDetailScreen";
 import { CreateDiscussionScreen } from "../screens/CreateDiscussionScreen";
 import { BooksScreen } from "../screens/BooksScreen";
 import { BookDetailScreen } from "../screens/BookDetailScreen";
@@ -238,14 +238,6 @@ export const AppNavigation = () => {
             title: "새 컬렉션",
             animation: "slide_from_right",
           }}
-        />
-        <Stack.Screen
-          name="DiscussionDetail"
-          component={DiscussionDetailScreen}
-          options={({ route }) => ({
-            title: route.params.title,
-            animation: "slide_from_right",
-          })}
         />
         <Stack.Screen
           name="CreateDiscussion"
