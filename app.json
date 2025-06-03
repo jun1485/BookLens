@@ -12,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "web": {
-      "output": "static"
-    },
+
     "scheme": "booklens",
     "plugins": [
       [
@@ -57,8 +55,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro",
-      "output": "static"
+      "bundler": "metro"
     },
     "extra": {
       "eas": {
