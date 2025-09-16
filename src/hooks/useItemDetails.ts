@@ -1,6 +1,28 @@
 import { useState, useEffect } from "react";
 import { movieService, bookService } from "../services/api";
-import { ItemDetails, ItemType } from "../types/itemTypes";
+import { ItemDetails, ItemType, ItemTitleCache } from "../types/itemTypes";
+
+const itemTitleCache: ItemTitleCache = {};
+
+const createCacheKey = (itemType: ItemType, itemId: string | number) =>
+  `${itemType}_${String(itemId)}`;
+
+const getFallbackTitle = (itemType: ItemType, itemId: string | number) =>
+  itemType === "movie"
+    ? `영화 (ID: ${itemId})`
+    : `책 (ISBN: ${itemId})`;
+
+const hasValidItemId = (itemId: string | number): boolean => {
+  if (itemId === null || itemId === undefined) {
+    return false;
+  }
+
+  if (typeof itemId === "string") {
+    return itemId.trim().length > 0;
+  }
+
+  return true;
+};
 
 /**
  * 영화/책 아이템의 제목을 가져오는 훅
@@ -12,72 +34,142 @@ export const useItemDetails = (
   itemType: ItemType,
   itemId: string | number
 ): ItemDetails => {
-  const [details, setDetails] = useState<ItemDetails>({
-    id: itemId,
-    type: itemType,
-    title:
-      itemType === "movie" ? `영화 (ID: ${itemId})` : `책 (ISBN: ${itemId})`,
-    loading: true,
-    error: false,
+  const [details, setDetails] = useState<ItemDetails>(() => {
+    const fallbackTitle = getFallbackTitle(itemType, itemId);
+
+    if (!hasValidItemId(itemId)) {
+      return {
+        id: itemId,
+        type: itemType,
+        title: fallbackTitle,
+        loading: false,
+        error: false,
+      };
+    }
+
+    const cacheKey = createCacheKey(itemType, itemId);
+    const cachedTitle = itemTitleCache[cacheKey];
+
+    return {
+      id: itemId,
+      type: itemType,
+      title: cachedTitle ?? fallbackTitle,
+      loading: !cachedTitle,
+      error: false,
+    };
   });
 
   useEffect(() => {
-    const fetchItemDetails = async () => {
-      // ID가 없으면 무시
-      if (!itemId) {
-        setDetails((prev) => ({ ...prev, loading: false }));
-        return;
-      }
+    let isActive = true;
+    const fallbackTitle = getFallbackTitle(itemType, itemId);
+    const cacheKey = createCacheKey(itemType, itemId);
+    const shouldFetch = hasValidItemId(itemId);
 
+    if (!shouldFetch) {
+      setDetails({
+        id: itemId,
+        type: itemType,
+        title: fallbackTitle,
+        loading: false,
+        error: false,
+      });
+
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const cachedTitle = itemTitleCache[cacheKey];
+    if (cachedTitle) {
+      setDetails({
+        id: itemId,
+        type: itemType,
+        title: cachedTitle,
+        loading: false,
+        error: false,
+      });
+
+      return () => {
+        isActive = false;
+      };
+    }
+
+    setDetails({
+      id: itemId,
+      type: itemType,
+      title: fallbackTitle,
+      loading: true,
+      error: false,
+    });
+
+    const fetchItemDetails = async () => {
       try {
         if (itemType === "movie") {
-          // 영화 정보 가져오기
-          const movieData = await movieService.getMovieDetails(Number(itemId));
-          if (movieData && movieData.title) {
+          const movieId = Number(itemId);
+          if (!Number.isFinite(movieId)) {
+            throw new Error(`유효하지 않은 영화 ID: ${itemId}`);
+          }
+
+          const movieData = await movieService.getMovieDetails(movieId);
+          const movieTitle = movieData?.title ? movieData.title.trim() : "";
+          const resolvedTitle = movieTitle || fallbackTitle;
+
+          if (movieTitle) {
+            itemTitleCache[cacheKey] = movieTitle;
+          }
+
+          if (isActive) {
             setDetails({
               id: itemId,
               type: "movie",
-              title: movieData.title,
+              title: resolvedTitle,
               loading: false,
               error: false,
             });
-          } else {
-            throw new Error("영화 제목을 가져올 수 없습니다");
           }
         } else {
-          // 책 정보 가져오기
           const searchResult = await bookService.searchBooks(`isbn:${itemId}`);
-          if (
-            searchResult.results.length > 0 &&
-            searchResult.results[0].title
-          ) {
+          const firstBookWithTitle = searchResult.results.find(
+            (book) => book.title && book.title.trim().length > 0
+          );
+          const bookTitle = firstBookWithTitle
+            ? firstBookWithTitle.title.trim()
+            : "";
+          const resolvedTitle = bookTitle || fallbackTitle;
+
+          if (bookTitle) {
+            itemTitleCache[cacheKey] = bookTitle;
+          }
+
+          if (isActive) {
             setDetails({
               id: itemId,
               type: "book",
-              title: searchResult.results[0].title,
+              title: resolvedTitle,
               loading: false,
               error: false,
             });
-          } else {
-            throw new Error("책 제목을 가져올 수 없습니다");
           }
         }
       } catch (err) {
         console.error(`제목 가져오기 오류 (${itemType} ${itemId}):`, err);
-        setDetails({
-          id: itemId,
-          type: itemType,
-          title:
-            itemType === "movie"
-              ? `영화 (ID: ${itemId})`
-              : `책 (ISBN: ${itemId})`,
-          loading: false,
-          error: true,
-        });
+        if (isActive) {
+          setDetails({
+            id: itemId,
+            type: itemType,
+            title: fallbackTitle,
+            loading: false,
+            error: true,
+          });
+        }
       }
     };
 
     fetchItemDetails();
+
+    return () => {
+      isActive = false;
+    };
   }, [itemId, itemType]);
 
   return details;
@@ -92,22 +184,51 @@ export const getItemTitleFetcher = () => {
     itemType: ItemType,
     itemId: string | number
   ): Promise<string> => {
+    const fallbackTitle = getFallbackTitle(itemType, itemId);
+
+    if (!hasValidItemId(itemId)) {
+      return fallbackTitle;
+    }
+
+    const cacheKey = createCacheKey(itemType, itemId);
+    const cachedTitle = itemTitleCache[cacheKey];
+    if (cachedTitle) {
+      return cachedTitle;
+    }
+
     try {
       if (itemType === "movie") {
-        const movieData = await movieService.getMovieDetails(Number(itemId));
-        return movieData?.title || `영화 (ID: ${itemId})`;
+        const movieId = Number(itemId);
+        if (!Number.isFinite(movieId)) {
+          throw new Error(`유효하지 않은 영화 ID: ${itemId}`);
+        }
+
+        const movieData = await movieService.getMovieDetails(movieId);
+        const movieTitle = movieData?.title ? movieData.title.trim() : "";
+
+        if (movieTitle) {
+          itemTitleCache[cacheKey] = movieTitle;
+          return movieTitle;
+        }
       } else {
         const searchResult = await bookService.searchBooks(`isbn:${itemId}`);
-        return searchResult.results.length > 0
-          ? searchResult.results[0].title
-          : `책 (ISBN: ${itemId})`;
+        const firstBookWithTitle = searchResult.results.find(
+          (book) => book.title && book.title.trim().length > 0
+        );
+        const bookTitle = firstBookWithTitle
+          ? firstBookWithTitle.title.trim()
+          : "";
+
+        if (bookTitle) {
+          itemTitleCache[cacheKey] = bookTitle;
+          return bookTitle;
+        }
       }
     } catch (err) {
       console.error(`제목 가져오기 오류 (${itemType} ${itemId}):`, err);
-      return itemType === "movie"
-        ? `영화 (ID: ${itemId})`
-        : `책 (ISBN: ${itemId})`;
     }
+
+    return fallbackTitle;
   };
 
   return { fetchItemTitle };
