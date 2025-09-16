@@ -51,6 +51,12 @@ interface TossPaymentsSDK {
   requestPayment: (method: string, options: any) => Promise<void>;
 }
 
+type SubscriptionStatus = {
+  isPremium: boolean;
+  expiryDate?: Date;
+  currentPlan?: SubscriptionPlan;
+};
+
 /**
  * Google Play 결제 서비스 클래스
  * React Native IAP를 사용하여 Google Play Billing Library 6.0.1+ 지원
@@ -242,6 +248,131 @@ class PaymentService {
       console.log("✅ Android 구매 확인 완료");
     } catch (error) {
       console.error("❌ Android 구매 확인 실패:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 저장된 정보를 기반으로 현재 구독 상태를 확인합니다.
+   */
+  async checkSubscriptionStatus(): Promise<SubscriptionStatus> {
+    try {
+      const [user, latestPayment] = await Promise.all([
+        userStorage.getProfile(),
+        paymentStorage.getLatestPayment(),
+      ]);
+
+      const expiryTimestamp =
+        user?.subscriptionExpiry ?? latestPayment?.subscriptionInfo?.endDate;
+
+      let expiryDate: Date | undefined;
+      if (typeof expiryTimestamp === "number") {
+        const parsed = new Date(expiryTimestamp);
+        if (!Number.isNaN(parsed.getTime())) {
+          expiryDate = parsed;
+        }
+      }
+
+      const hasActiveSubscription = Boolean(
+        user?.isPremium && (!expiryDate || expiryDate.getTime() > Date.now())
+      );
+
+      if (user && !hasActiveSubscription && user.isPremium) {
+        await userStorage.saveProfile({
+          ...user,
+          isPremium: false,
+        });
+      }
+
+      const planId = latestPayment?.subscriptionInfo?.planId;
+      let currentPlan: SubscriptionPlan | undefined;
+      if (planId) {
+        const plan = await subscriptionPlansStorage.getPlanById(planId);
+        if (plan) {
+          currentPlan = plan;
+        }
+      }
+
+      return {
+        isPremium: hasActiveSubscription,
+        ...(expiryDate ? { expiryDate } : {}),
+        ...(currentPlan ? { currentPlan } : {}),
+      };
+    } catch (error) {
+      console.error("❌ 구독 상태 확인 중 오류:", error);
+      return { isPremium: false };
+    }
+  }
+
+  /**
+   * 선택한 구독 플랜에 대해 결제 요청을 처리합니다.
+   * 실제 결제 연동이 없는 경우 로컬 시뮬레이션으로 처리합니다.
+   */
+  async requestPayment(planId: string): Promise<void> {
+    try {
+      const plan = await subscriptionPlansStorage.getPlanById(planId);
+      if (!plan) {
+        throw new Error(`존재하지 않는 구독 플랜입니다: ${planId}`);
+      }
+
+      const now = Date.now();
+      const expiry = now + plan.duration * 24 * 60 * 60 * 1000;
+
+      const paymentRecord: PaymentInfo = {
+        paymentKey: `local_${now}`,
+        orderId: `order_${plan.id}_${now}`,
+        amount: plan.price,
+        orderName: plan.name,
+        status: "DONE",
+        transactionDate: new Date(now).toISOString(),
+        subscriptionInfo: {
+          planId: plan.id,
+          startDate: now,
+          endDate: expiry,
+        },
+      };
+
+      await paymentStorage.savePayment(paymentRecord);
+      await userStorage.updateSubscription(true, expiry);
+    } catch (error) {
+      console.error("❌ 결제 요청 처리 중 오류:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 현재 활성화된 구독을 취소합니다.
+   */
+  async cancelSubscription(): Promise<void> {
+    try {
+      const user = await userStorage.getProfile();
+      if (user) {
+        user.isPremium = false;
+        delete user.subscriptionExpiry;
+        await userStorage.saveProfile(user);
+      }
+
+      const latestPayment = await paymentStorage.getLatestPayment();
+      if (latestPayment) {
+        const cancellationRecord: PaymentInfo = {
+          paymentKey: `${latestPayment.paymentKey}_cancel_${Date.now()}`,
+          orderId: `${latestPayment.orderId}_cancel`,
+          amount: 0,
+          orderName: `[취소] ${latestPayment.orderName}`,
+          status: "CANCELED",
+          transactionDate: new Date().toISOString(),
+          subscriptionInfo: latestPayment.subscriptionInfo
+            ? {
+                ...latestPayment.subscriptionInfo,
+                endDate: Date.now(),
+              }
+            : undefined,
+        };
+
+        await paymentStorage.savePayment(cancellationRecord);
+      }
+    } catch (error) {
+      console.error("❌ 구독 취소 처리 중 오류:", error);
       throw error;
     }
   }
