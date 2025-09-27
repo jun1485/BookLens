@@ -201,6 +201,90 @@ class PaymentService {
   }
 
   /**
+   * 저장된 정보를 기반으로 구독 상태 확인
+   */
+  async checkSubscriptionStatus(): Promise<{
+    isPremium: boolean;
+    expiryDate?: Date;
+    currentPlan?: SubscriptionPlan;
+  }> {
+    try {
+      const user = await userStorage.getProfile();
+      const latestPayment = await paymentStorage.getLatestPayment();
+
+      let isPremium = Boolean(user?.isPremium);
+      let expiryDate: Date | undefined;
+      let currentPlan: SubscriptionPlan | undefined;
+
+      if (user?.subscriptionExpiry) {
+        expiryDate = new Date(user.subscriptionExpiry);
+        if (expiryDate.getTime() <= Date.now()) {
+          isPremium = false;
+          await userStorage.updateSubscription(false);
+        }
+      }
+
+      if (latestPayment?.subscriptionInfo) {
+        const { planId, endDate } = latestPayment.subscriptionInfo;
+        const plan = await subscriptionPlansStorage.getPlanById(planId);
+        if (plan) {
+          currentPlan = plan;
+        }
+
+        if (!expiryDate && endDate) {
+          expiryDate = new Date(endDate);
+        }
+
+        if (expiryDate && expiryDate.getTime() > Date.now()) {
+          isPremium = true;
+        }
+      }
+
+      return { isPremium, expiryDate, currentPlan };
+    } catch (error) {
+      console.error("구독 상태 확인 중 오류 발생:", error);
+      return { isPremium: false };
+    }
+  }
+
+  /**
+   * 모의 결제 요청 처리
+   */
+  async requestPayment(planId: string): Promise<void> {
+    const plan = await subscriptionPlansStorage.getPlanById(planId);
+    if (!plan) {
+      throw new Error("선택한 구독 플랜을 찾을 수 없습니다");
+    }
+
+    const startDate = Date.now();
+    const endDate = startDate + plan.duration * 24 * 60 * 60 * 1000;
+
+    const payment: PaymentInfo = {
+      paymentKey: `payment_${Date.now()}`,
+      orderId: `order_${plan.id}_${Date.now()}`,
+      amount: plan.price,
+      orderName: plan.name,
+      status: "DONE",
+      transactionDate: new Date(startDate).toISOString(),
+      subscriptionInfo: {
+        planId: plan.id,
+        startDate,
+        endDate,
+      },
+    };
+
+    await paymentStorage.savePayment(payment);
+    await userStorage.updateSubscription(true, endDate);
+  }
+
+  /**
+   * 구독 해지 처리
+   */
+  async cancelSubscription(): Promise<void> {
+    await userStorage.updateSubscription(false);
+  }
+
+  /**
    * 구매 완료 처리
    * Google Play Billing Library 6.0.1+에서는 구매 확인이 필수입니다
    */

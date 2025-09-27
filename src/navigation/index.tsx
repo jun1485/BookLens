@@ -7,21 +7,21 @@ import { View, Text, StyleSheet, Platform } from "react-native";
 
 import { RootStackParamList, MainTabParamList } from "./types";
 
-import { MoviesScreen } from "../screens/MoviesScreen";
-import { MovieDetailScreen } from "../screens/MovieDetailScreen";
-import { ReviewScreen } from "../screens/ReviewScreen";
-import { SearchScreen } from "../screens/SearchScreen";
-import { MyReviewsScreen } from "../screens/MyReviewsScreen";
-import { CollectionsScreen } from "../screens/CollectionsScreen";
-import { CollectionDetailScreen } from "../screens/CollectionDetailScreen";
-import { ProfileScreen } from "../screens/ProfileScreen";
-import { DiscussionsScreen } from "../screens/DiscussionsScreen";
-// import { DiscussionDetailScreen } from "../screens/DiscussionDetailScreen";
-import { CreateDiscussionScreen } from "../screens/CreateDiscussionScreen";
-import { BooksScreen } from "../screens/BooksScreen";
-import { BookDetailScreen } from "../screens/BookDetailScreen";
-import { SettingsScreen } from "../screens/SettingsScreen";
-import { SubscriptionScreen } from "../screens/SubscriptionScreen";
+import { MoviesScreen } from "../features/movies/screens/MoviesScreen";
+import { MovieDetailScreen } from "../features/movies/screens/MovieDetailScreen";
+import { ReviewScreen } from "../features/reviews/screens/ReviewScreen";
+import { SearchScreen } from "../features/search/screens/SearchScreen";
+import { MyReviewsScreen } from "../features/reviews/screens/MyReviewsScreen";
+import { CollectionsScreen } from "../features/collections/screens/CollectionsScreen";
+import { CollectionDetailScreen } from "../features/collections/screens/CollectionDetailScreen";
+import { ProfileScreen } from "../features/profile/screens/ProfileScreen";
+import { DiscussionsScreen } from "../features/discussions/screens/DiscussionsScreen";
+// import { DiscussionDetailScreen } from "../features/discussions/screens/DiscussionDetailScreen";
+import { CreateDiscussionScreen } from "../features/discussions/screens/CreateDiscussionScreen";
+import { BooksScreen } from "../features/books/screens/BooksScreen";
+import { BookDetailScreen } from "../features/books/screens/BookDetailScreen";
+import { SettingsScreen } from "../features/settings/screens/SettingsScreen";
+import { SubscriptionScreen } from "../features/subscription/screens/SubscriptionScreen";
 
 import { THEME } from "../utils/theme";
 
