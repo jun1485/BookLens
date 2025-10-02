@@ -1,121 +1,10 @@
-import axios, { AxiosInstance } from "axios";
-import { ApiResponse, Movie, Book } from "../types";
-
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
-
-// NAVER API 정보 (https://developers.naver.com/에서 발급)
-const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
-const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
-
-const PLACEHOLDER_IMAGE = "https://via.placeholder.com/128x192?text=No+Cover";
-
-const hasNaverBookCredentials = Boolean(
-  NAVER_CLIENT_ID && NAVER_CLIENT_SECRET
-);
-
-const naverBookApi: AxiosInstance | null = hasNaverBookCredentials
-  ? axios.create({
-      baseURL: "https://openapi.naver.com/v1/search",
-      timeout: 10000,
-      headers: {
-        "X-Naver-Client-Id": NAVER_CLIENT_ID ?? "",
-        "X-Naver-Client-Secret": NAVER_CLIENT_SECRET ?? "",
-      },
-    })
-  : null;
-
-// TMDB API 기본 설정
-const tmdbApi = axios.create({
-  baseURL: "https://api.themoviedb.org/3",
-  params: {
-    api_key: TMDB_API_KEY,
-    language: "ko-KR",
-  },
-  timeout: 10000,
-});
-
-// 요청 인터셉터
-tmdbApi.interceptors.request.use(
-  (config) => {
-    console.log(`API 요청: ${config.url}, 파라미터:`, config.params);
-    return config;
-  },
-  (error) => {
-    console.error("API 요청 오류:", error);
-    return Promise.reject(error);
-  }
-);
-
-// 응답 인터셉터
-tmdbApi.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    console.error(`API 응답 오류: ${error.message}`, error.config);
-    if (error.response) {
-      console.error("응답 데이터:", error.response.data);
-      console.error("응답 상태:", error.response.status);
-    }
-    return Promise.reject(error);
-  }
-);
-
-// 구글 북스 API 기본 설정
-const googleBooksApi = axios.create({
-  baseURL: "https://www.googleapis.com/books/v1",
-  timeout: 10000,
-});
-
-// 영화 API 서비스
-export const movieService = {
-  // 인기 영화 가져오기
-  getPopular: async (page = 1): Promise<ApiResponse<Movie>> => {
-    try {
-      console.log(`인기 영화 요청: 페이지 ${page}`);
-      const response = await tmdbApi.get("/movie/popular", {
-        params: { page },
-      });
-
-      if (response.data.page !== page) {
-        console.warn(`페이지 불일치: 요청=${page}, 응답=${response.data.page}`);
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error(`인기 영화 가져오기 오류(페이지 ${page}):`, error);
-      throw error;
-    }
-  },
-
-  // 영화 검색하기
-  searchMovies: async (
-    query: string,
-    page = 1
-  ): Promise<ApiResponse<Movie>> => {
-    const response = await tmdbApi.get("/search/movie", {
-      params: { query, page },
-    });
-    return response.data;
-  },
-
-  // 영화 상세 정보 가져오기
-  getMovieDetails: async (movieId: number): Promise<Movie> => {
-    const response = await tmdbApi.get(`/movie/${movieId}`);
-    return response.data;
-  },
-
-  // 장르별 영화 가져오기
-  getMoviesByGenre: async (
-    genreId: number,
-    page = 1
-  ): Promise<ApiResponse<Movie>> => {
-    const response = await tmdbApi.get("/discover/movie", {
-      params: { with_genres: genreId, page },
-    });
-    return response.data;
-  },
-};
+import { ApiResponse, Book } from "../../types";
+import {
+  googleBooksApi,
+  hasNaverBookCredentials,
+  naverBookApi,
+  PLACEHOLDER_IMAGE,
+} from "./clients";
 
 const cleanNaverText = (text?: string): string => {
   if (!text) {
@@ -196,7 +85,6 @@ const convertNaverBookToBook = (item: any): Book => {
   };
 };
 
-// 구글 북스 API로 받은 데이터를 Book 타입으로 변환하는 함수
 const convertGoogleBookToBook = (item: any): Book => {
   const volumeInfo = item.volumeInfo || {};
   const imageLinks = volumeInfo.imageLinks || {};
@@ -214,7 +102,7 @@ const convertGoogleBookToBook = (item: any): Book => {
       imageLinks.thumbnail || imageLinks.smallThumbnail || PLACEHOLDER_IMAGE,
     published_date: volumeInfo.publishedDate || "",
     publisher: volumeInfo.publisher || "출판사 미상",
-    price: 0, // 구글 북스 API는 가격 정보를 제공하지 않음
+    price: 0,
   };
 };
 
@@ -411,14 +299,12 @@ const fetchBestSellersFromNaver = async (): Promise<ApiResponse<Book>> => {
   };
 };
 
-// 책 API 서비스
 export const bookService = {
-  // 책 검색하기
-  searchBooks: async (
+  async searchBooks(
     query: string,
     start = 1,
     display = 10
-  ): Promise<ApiResponse<Book>> => {
+  ): Promise<ApiResponse<Book>> {
     if (naverBookApi) {
       try {
         const naverResult = await fetchBooksFromNaver(query, start, display);
@@ -438,9 +324,8 @@ export const bookService = {
     return await fetchBooksFromGoogle(query, start, display);
   },
 
-  // 베스트셀러 가져오기
-  getBestSellers: async (): Promise<ApiResponse<Book>> => {
-    if (naverBookApi) {
+  async getBestSellers(): Promise<ApiResponse<Book>> {
+    if (hasNaverBookCredentials && naverBookApi) {
       try {
         const naverResult = await fetchBestSellersFromNaver();
 

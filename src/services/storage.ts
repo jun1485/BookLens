@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Review,
   Collection,
@@ -6,6 +5,11 @@ import {
   PaymentInfo,
   SubscriptionPlan,
 } from "../types";
+import {
+  readJsonItem,
+  updateJsonItem,
+  writeJsonItem,
+} from "../utils/asyncStorage";
 
 // 스토리지 키 정의
 const STORAGE_KEYS = {
@@ -22,13 +26,10 @@ const STORAGE_KEYS = {
 export const reviewStorage = {
   // 모든 리뷰 가져오기
   getAll: async (): Promise<Review[]> => {
-    try {
-      const reviewsJson = await AsyncStorage.getItem(STORAGE_KEYS.REVIEWS);
-      return reviewsJson ? JSON.parse(reviewsJson) : [];
-    } catch (error) {
-      console.error("리뷰를 가져오는 중 오류 발생:", error);
-      return [];
-    }
+    return await readJsonItem(STORAGE_KEYS.REVIEWS, {
+      fallback: [],
+      label: "리뷰 목록",
+    });
   },
 
   // 특정 아이템의 리뷰 가져오기
@@ -49,38 +50,37 @@ export const reviewStorage = {
 
   // 리뷰 저장하기
   save: async (review: Review): Promise<void> => {
-    try {
-      const reviews = await reviewStorage.getAll();
+    await updateJsonItem<Review[]>(
+      STORAGE_KEYS.REVIEWS,
+      (reviews) => {
+        const nextReviews = [...reviews];
+        const existingIndex = nextReviews.findIndex((r) => r.id === review.id);
 
-      // 기존 리뷰가 있으면 업데이트, 없으면 추가
-      const existingIndex = reviews.findIndex((r) => r.id === review.id);
+        if (existingIndex >= 0) {
+          nextReviews[existingIndex] = review;
+        } else {
+          nextReviews.push(review);
+        }
 
-      if (existingIndex >= 0) {
-        reviews[existingIndex] = review;
-      } else {
-        reviews.push(review);
+        return nextReviews;
+      },
+      {
+        fallback: [],
+        label: "리뷰 목록",
       }
-
-      await AsyncStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
-    } catch (error) {
-      console.error("리뷰를 저장하는 중 오류 발생:", error);
-    }
+    );
   },
 
   // 리뷰 삭제하기
   delete: async (reviewId: string): Promise<void> => {
-    try {
-      const reviews = await reviewStorage.getAll();
-      const filteredReviews = reviews.filter(
-        (review) => review.id !== reviewId
-      );
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.REVIEWS,
-        JSON.stringify(filteredReviews)
-      );
-    } catch (error) {
-      console.error("리뷰를 삭제하는 중 오류 발생:", error);
-    }
+    await updateJsonItem<Review[]>(
+      STORAGE_KEYS.REVIEWS,
+      (reviews) => reviews.filter((review) => review.id !== reviewId),
+      {
+        fallback: [],
+        label: "리뷰 목록",
+      }
+    );
   },
 };
 
@@ -88,15 +88,10 @@ export const reviewStorage = {
 export const collectionStorage = {
   // 모든 컬렉션 가져오기
   getAll: async (): Promise<Collection[]> => {
-    try {
-      const collectionsJson = await AsyncStorage.getItem(
-        STORAGE_KEYS.COLLECTIONS
-      );
-      return collectionsJson ? JSON.parse(collectionsJson) : [];
-    } catch (error) {
-      console.error("컬렉션을 가져오는 중 오류 발생:", error);
-      return [];
-    }
+    return await readJsonItem(STORAGE_KEYS.COLLECTIONS, {
+      fallback: [],
+      label: "컬렉션 목록",
+    });
   },
 
   // 특정 컬렉션 가져오기
@@ -114,43 +109,40 @@ export const collectionStorage = {
 
   // 컬렉션 저장하기
   save: async (collection: Collection): Promise<void> => {
-    try {
-      const collections = await collectionStorage.getAll();
+    await updateJsonItem<Collection[]>(
+      STORAGE_KEYS.COLLECTIONS,
+      (collections) => {
+        const nextCollections = [...collections];
+        const existingIndex = nextCollections.findIndex(
+          (c) => c.id === collection.id
+        );
 
-      // 기존 컬렉션이 있으면 업데이트, 없으면 추가
-      const existingIndex = collections.findIndex(
-        (c) => c.id === collection.id
-      );
+        if (existingIndex >= 0) {
+          nextCollections[existingIndex] = collection;
+        } else {
+          nextCollections.push(collection);
+        }
 
-      if (existingIndex >= 0) {
-        collections[existingIndex] = collection;
-      } else {
-        collections.push(collection);
+        return nextCollections;
+      },
+      {
+        fallback: [],
+        label: "컬렉션 목록",
       }
-
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.COLLECTIONS,
-        JSON.stringify(collections)
-      );
-    } catch (error) {
-      console.error("컬렉션을 저장하는 중 오류 발생:", error);
-    }
+    );
   },
 
   // 컬렉션 삭제하기
   delete: async (collectionId: string): Promise<void> => {
-    try {
-      const collections = await collectionStorage.getAll();
-      const filteredCollections = collections.filter(
-        (collection) => collection.id !== collectionId
-      );
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.COLLECTIONS,
-        JSON.stringify(filteredCollections)
-      );
-    } catch (error) {
-      console.error("컬렉션을 삭제하는 중 오류 발생:", error);
-    }
+    await updateJsonItem<Collection[]>(
+      STORAGE_KEYS.COLLECTIONS,
+      (collections) =>
+        collections.filter((collection) => collection.id !== collectionId),
+      {
+        fallback: [],
+        label: "컬렉션 목록",
+      }
+    );
   },
 
   // 컬렉션에 아이템 추가하기
@@ -159,32 +151,40 @@ export const collectionStorage = {
     itemId: string | number,
     itemType: "movie" | "book"
   ): Promise<void> => {
-    try {
-      const collections = await collectionStorage.getAll();
-      const collectionIndex = collections.findIndex(
-        (c) => c.id === collectionId
-      );
+    await updateJsonItem<Collection[]>(
+      STORAGE_KEYS.COLLECTIONS,
+      (collections) => {
+        const nextCollections = [...collections];
+        const collectionIndex = nextCollections.findIndex(
+          (c) => c.id === collectionId
+        );
 
-      if (collectionIndex >= 0) {
-        // 중복 체크
-        const itemExists = collections[collectionIndex].items.some(
+        if (collectionIndex < 0) {
+          return nextCollections;
+        }
+
+        const collection = nextCollections[collectionIndex];
+        const itemExists = collection.items.some(
           (item) => item.id === itemId && item.type === itemType
         );
 
         if (!itemExists) {
-          collections[collectionIndex].items.push({
-            id: itemId,
-            type: itemType,
-          });
-          await AsyncStorage.setItem(
-            STORAGE_KEYS.COLLECTIONS,
-            JSON.stringify(collections)
-          );
+          nextCollections[collectionIndex] = {
+            ...collection,
+            items: [
+              ...collection.items,
+              { id: itemId, type: itemType },
+            ],
+          };
         }
+
+        return nextCollections;
+      },
+      {
+        fallback: [],
+        label: "컬렉션 목록",
       }
-    } catch (error) {
-      console.error("컬렉션에 아이템을 추가하는 중 오류 발생:", error);
-    }
+    );
   },
 
   // 컬렉션에서 아이템 제거하기
@@ -193,26 +193,33 @@ export const collectionStorage = {
     itemId: string | number,
     itemType: "movie" | "book"
   ): Promise<void> => {
-    try {
-      const collections = await collectionStorage.getAll();
-      const collectionIndex = collections.findIndex(
-        (c) => c.id === collectionId
-      );
+    await updateJsonItem<Collection[]>(
+      STORAGE_KEYS.COLLECTIONS,
+      (collections) => {
+        const nextCollections = [...collections];
+        const collectionIndex = nextCollections.findIndex(
+          (c) => c.id === collectionId
+        );
 
-      if (collectionIndex >= 0) {
-        collections[collectionIndex].items = collections[
-          collectionIndex
-        ].items.filter(
-          (item) => !(item.id === itemId && item.type === itemType)
-        );
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.COLLECTIONS,
-          JSON.stringify(collections)
-        );
+        if (collectionIndex < 0) {
+          return nextCollections;
+        }
+
+        const collection = nextCollections[collectionIndex];
+        nextCollections[collectionIndex] = {
+          ...collection,
+          items: collection.items.filter(
+            (item) => !(item.id === itemId && item.type === itemType)
+          ),
+        };
+
+        return nextCollections;
+      },
+      {
+        fallback: [],
+        label: "컬렉션 목록",
       }
-    } catch (error) {
-      console.error("컬렉션에서 아이템을 제거하는 중 오류 발생:", error);
-    }
+    );
   },
 };
 
@@ -220,25 +227,15 @@ export const collectionStorage = {
 export const userStorage = {
   // 사용자 프로필 가져오기
   getProfile: async (): Promise<User | null> => {
-    try {
-      const userJson = await AsyncStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-      return userJson ? JSON.parse(userJson) : null;
-    } catch (error) {
-      console.error("사용자 프로필을 가져오는 중 오류 발생:", error);
-      return null;
-    }
+    return await readJsonItem<User | null>(STORAGE_KEYS.USER_PROFILE, {
+      fallback: null,
+      label: "사용자 프로필",
+    });
   },
 
   // 사용자 프로필 저장하기
   saveProfile: async (user: User): Promise<void> => {
-    try {
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.USER_PROFILE,
-        JSON.stringify(user)
-      );
-    } catch (error) {
-      console.error("사용자 프로필을 저장하는 중 오류 발생:", error);
-    }
+    await writeJsonItem(STORAGE_KEYS.USER_PROFILE, user, "사용자 프로필");
   },
 
   // 프리미엄 상태 확인
@@ -284,29 +281,22 @@ export const userStorage = {
 export const paymentStorage = {
   // 모든 결제 기록 가져오기
   getAllPayments: async (): Promise<PaymentInfo[]> => {
-    try {
-      const paymentsJson = await AsyncStorage.getItem(
-        STORAGE_KEYS.PAYMENT_HISTORY
-      );
-      return paymentsJson ? JSON.parse(paymentsJson) : [];
-    } catch (error) {
-      console.error("결제 기록을 가져오는 중 오류 발생:", error);
-      return [];
-    }
+    return await readJsonItem(STORAGE_KEYS.PAYMENT_HISTORY, {
+      fallback: [],
+      label: "결제 기록",
+    });
   },
 
   // 결제 기록 저장하기
   savePayment: async (payment: PaymentInfo): Promise<void> => {
-    try {
-      const payments = await paymentStorage.getAllPayments();
-      payments.push(payment);
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.PAYMENT_HISTORY,
-        JSON.stringify(payments)
-      );
-    } catch (error) {
-      console.error("결제 기록을 저장하는 중 오류 발생:", error);
-    }
+    await updateJsonItem<PaymentInfo[]>(
+      STORAGE_KEYS.PAYMENT_HISTORY,
+      (payments) => [...payments, payment],
+      {
+        fallback: [],
+        label: "결제 기록",
+      }
+    );
   },
 
   // 가장 최근 결제 정보 가져오기
@@ -369,16 +359,10 @@ export const subscriptionPlansStorage = {
 
   // 구독 플랜 가져오기
   getPlans: async (): Promise<SubscriptionPlan[]> => {
-    try {
-      // 저장된 플랜이 있으면 가져오고, 없으면 기본 플랜 반환
-      const plansJson = await AsyncStorage.getItem(STORAGE_KEYS.SUBSCRIPTION);
-      return plansJson
-        ? JSON.parse(plansJson)
-        : subscriptionPlansStorage.getDefaultPlans();
-    } catch (error) {
-      console.error("구독 플랜을 가져오는 중 오류 발생:", error);
-      return subscriptionPlansStorage.getDefaultPlans();
-    }
+    return await readJsonItem(STORAGE_KEYS.SUBSCRIPTION, {
+      fallback: () => subscriptionPlansStorage.getDefaultPlans(),
+      label: "구독 플랜",
+    });
   },
 
   // 구독 플랜 ID로 가져오기
