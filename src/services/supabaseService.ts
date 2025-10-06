@@ -2,9 +2,16 @@ import { createClient } from "@supabase/supabase-js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import "react-native-url-polyfill/auto";
 
-// Supabase URL과 API 키 설정 (실제 값으로 변경 필요)
-const SUPABASE_URL = process.env.SUPABASE_URL || "";
-const SUPABASE_KEY = process.env.SUPABASE_KEY || "";
+import { env, hasValue } from "../config/env";
+
+const SUPABASE_URL = env.supabaseUrl;
+const SUPABASE_KEY = env.supabaseKey;
+
+if (!hasValue(SUPABASE_URL) || !hasValue(SUPABASE_KEY)) {
+  console.warn(
+    "[supabase] 환경 변수가 없어 실시간 기능이 제한될 수 있습니다."
+  );
+}
 
 // Supabase 클라이언트 생성
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
