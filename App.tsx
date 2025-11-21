@@ -3,10 +3,10 @@ import "react-native-url-polyfill/auto"; // URL polyfill 추가
 import React, { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
-import { AppNavigation } from "./src/navigation";
-// import { adService } from "./src/services/adService";
-import { userStorage } from "./src/services/storage";
-import { paymentService } from "./src/services/paymentService";
+import { AppNavigation } from "./src/app/navigation";
+// import { adService } from "./src/shared/services/adService";
+import { userStorage } from "./src/shared/services/storage";
+import { paymentService } from "./src/shared/services/paymentService";
 
 export default function App() {
   useEffect(() => {
